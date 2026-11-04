@@ -3036,6 +3036,19 @@ function portalServiceCall(method, params, done, customTimeout) {
     return 'provider-theme-' + String(provider || 'generic').replace(/[^a-z0-9-]/gi, '');
   }
 
+  /* Chromium 53 / webOS 4 does not reliably support the options-object
+     form of scrollIntoView. Set the provider page's scroll position directly. */
+  function scrollProviderTo(page, node) {
+    if (!page || !node) { return false; }
+    var top = 0, current = node;
+    while (current && current !== page) {
+      top += current.offsetTop || 0;
+      current = current.offsetParent;
+    }
+    page.scrollTop = Math.max(0, top - 18);
+    return true;
+  }
+
   function appendProviderRail(page, items, title, y, accent) {
     if (!items || !items.length) { return y; }
     var heading = el('div', 'provider-rail-title', title);
@@ -3122,7 +3135,7 @@ function portalServiceCall(method, params, done, customTimeout) {
             for (var x = 0; x < all.length; x++) { all[x].classList.remove('is-current'); }
             utility.classList.add('is-current');
             var node = page.querySelector('.' + entry.target);
-            if (node && node.scrollIntoView) { node.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+            if (node) { scrollProviderTo(page, node); }
             else if (entry.target === 'provider-my-list') { page.scrollTop = page.scrollHeight; }
           };
           page.appendChild(utility);
@@ -3146,8 +3159,8 @@ function portalServiceCall(method, params, done, customTimeout) {
           var sectionTarget = label === 'APPLE TV+' ? 'provider-section-apple-originals' :
             (label === 'NAT GEO' ? 'provider-section-national-geographic' : 'provider-section-' + sectionKey);
           var node = page.querySelector('.' + sectionTarget) || page.querySelector('.' + target);
-          if (node && node.scrollIntoView) {
-            node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          if (node) {
+            scrollProviderTo(page, node);
           } else if (target === 'provider-my-list') {
             page.scrollTop = page.scrollHeight;
           }
