@@ -2767,7 +2767,7 @@ function portalServiceCall(method, params, done, customTimeout) {
   ];
 
   function providerWords(value) {
-    return norm(value || '').replace(/[^a-z0-9]+/g, ' ').replace(/^\\s+|\\s+$/g, '').split(/\\s+/);
+    return norm(value || '').replace(/[^a-z0-9]+/g, ' ').replace(/^\s+|\s+$/g, '').split(/\s+/);
   }
 
   function providerHasAlias(value, alias) {
