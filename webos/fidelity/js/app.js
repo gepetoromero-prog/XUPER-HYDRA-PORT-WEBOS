@@ -3103,7 +3103,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     }
     var note = el('div', 'catalog-empty',
       'Las plataformas usan los títulos y enlaces autorizados que entrega tu servicio. La reproducción, el progreso y el control remoto permanecen dentro de Xuper.');
-    abs(note, 192, 490, 1320, 110);
+    abs(note, 192, 680, 1320, 110);
     note.style.cssText += ';white-space:normal;line-height:1.5;padding:24px;font-size:22px;';
     page.appendChild(note);
   }
