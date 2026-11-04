@@ -3957,10 +3957,19 @@ function portalServiceCall(method, params, done, customTimeout) {
   var SEARCH_PAGE_SIZE = 10;
 
   function renderSearchResults(matches) {
-    /* A short query can match hundreds of portal titles.  webOS 4 runs out
-       of media/UI memory if every poster is inserted at once, so retain the
-       complete result list in JS but render one 2-row page at a time. */
-    state.searchMatches = matches || [];
+    /* Keep the unfiltered query result so category chips can be changed
+       without issuing another portal request. */
+    state.searchBaseMatches = matches || [];
+    var filter = state.searchFilter || 'all';
+    state.searchMatches = state.searchBaseMatches.filter(function (item) {
+      var category = norm(String(item.category || '') + ' ' + String(item.row || ''));
+      if (filter === 'movies') { return !isSeriesItem(item); }
+      if (filter === 'series') { return isSeriesItem(item); }
+      if (filter === 'free') { return /gratis|free/.test(category); }
+      if (filter === 'kids') { return /infantil|kids|ninos|children/.test(category); }
+      if (filter === 'uhd') { return /uhd|4k/.test(category); }
+      return true;
+    });
     state.searchPage = 0;
     renderSearchResultPage(0, -1);
   }
@@ -3969,6 +3978,34 @@ function portalServiceCall(method, params, done, customTimeout) {
     var matches = state.searchMatches || [];
     searchHot.classList.add('is-hidden');
     searchResults.classList.add('is-active');
+    var filterBar = searchResults.querySelector('.search-filter-bar');
+    if (!filterBar) {
+      filterBar = el('div', 'search-filter-bar');
+      filterBar.style.cssText = 'position:absolute;left:0;top:0;display:flex;gap:12px;z-index:5;height:54px;align-items:center;';
+      var filterDefs = [{id:'all',label:'Todo'},{id:'movies',label:'Películas'},{id:'series',label:'Series'},{id:'free',label:'Gratis'},{id:'kids',label:'Infantil'},{id:'uhd',label:'UHD'}];
+      for (var fi = 0; fi < filterDefs.length; fi++) {
+        (function (def) {
+          var chip = el('div', 'focusable', def.label);
+          chip.style.cssText = 'padding:8px 18px;border-radius:18px;background:#292d35;color:#fff;font-size:19px;';
+          chip._activate = function () {
+            state.searchFilter = def.id;
+            renderSearchResults(state.searchBaseMatches || []);
+            var activeBar = searchResults.querySelector('.search-filter-bar');
+            if (activeBar) {
+              var activeChips = activeBar.querySelectorAll('.focusable');
+              for (var ci = 0; ci < activeChips.length; ci++) {
+                activeChips[ci].style.background = activeChips[ci].textContent === def.label ? '#c91923' : '#292d35';
+              }
+              var focusChip = activeBar.querySelectorAll('.focusable')[fi];
+              if (focusChip) { setFocus(focusChip); }
+            }
+          };
+          if ((state.searchFilter || 'all') === def.id) { chip.style.background = '#c91923'; }
+          filterBar.appendChild(chip);
+        })(filterDefs[fi]);
+      }
+      searchResults.insertBefore(filterBar, searchNav);
+    }
     clear(searchResultGrid);
     if (matches.length === 0) {
       searchEmpty.classList.add('is-active');
