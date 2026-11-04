@@ -3952,3 +3952,92 @@ div, section, span { outline: none; }
 .provider-experience.provider-theme-hulu .provider-brand { color:#1ce783; }
 .provider-experience.provider-theme-paramount { background:linear-gradient(180deg,#07152d 0%,#050b18 70%); --provider-accent:#55aaff; }
 .provider-experience.provider-theme-paramount .provider-brand { color:#fff; }
+
+
+/* Netflix-inspired TV polish: readable focus, stronger hero hierarchy and
+   consistent horizontal rails. Keeps the 1920x1080 webOS design canvas. */
+.provider-experience.provider-theme-netflix {
+  background:
+    linear-gradient(180deg,rgba(0,0,0,.04) 0%,#141414 39%,#101010 100%),
+    #141414;
+  --provider-accent:#e50914;
+}
+.provider-theme-netflix .provider-back {
+  background:rgba(20,20,20,.82);
+  border:1px solid rgba(255,255,255,.14);
+}
+.provider-theme-netflix .provider-brand {
+  color:#e50914;
+  font-size:50px;
+  letter-spacing:1.5px;
+  text-shadow:0 2px 16px rgba(0,0,0,.5);
+}
+.provider-theme-netflix .provider-nav-item {
+  font-size:19px;
+  letter-spacing:.1px;
+  transition:color .15s ease;
+}
+.provider-theme-netflix .provider-nav-item.is-current {
+  color:#fff;
+  border-bottom-width:4px;
+}
+.provider-theme-netflix .provider-hero {
+  border:0;
+  border-radius:4px;
+  box-shadow:0 16px 44px rgba(0,0,0,.34);
+}
+.provider-theme-netflix .provider-hero:after {
+  content:"";
+  position:absolute;
+  z-index:2;
+  left:0;right:0;bottom:0;height:58%;
+  background:linear-gradient(0deg,#141414 0%,rgba(20,20,20,.72) 32%,transparent 100%);
+  pointer-events:none;
+}
+.provider-theme-netflix .provider-hero .bento-title {
+  z-index:3;
+  left:34px;
+  bottom:46px;
+  max-width:780px;
+  font-size:48px;
+  line-height:1.08;
+  letter-spacing:-1px;
+}
+.provider-theme-netflix .provider-hero-meta {
+  font-size:20px;
+  letter-spacing:.25px;
+}
+.provider-theme-netflix .provider-play {
+  background:#fff;
+  border-radius:4px;
+  min-height:62px;
+}
+.provider-theme-netflix .provider-more {
+  background:rgba(109,109,110,.72);
+  border-radius:4px;
+}
+.provider-theme-netflix .provider-rail-title {
+  font-size:30px;
+  line-height:38px;
+  letter-spacing:-.25px;
+}
+.provider-theme-netflix .provider-rail-card {
+  border-radius:4px;
+  box-shadow:0 5px 16px rgba(0,0,0,.24);
+  transition:transform .16s ease,box-shadow .16s ease;
+}
+.provider-experience .focusable.is-focused {
+  outline:3px solid #fff;
+  outline-offset:4px;
+  z-index:20;
+  box-shadow:0 0 0 2px rgba(0,0,0,.7),0 8px 28px rgba(0,0,0,.55);
+}
+.provider-theme-netflix .provider-nav-item.is-focused {
+  outline:none;
+  box-shadow:none;
+  border-bottom-color:#fff;
+  color:#fff;
+}
+.provider-theme-netflix .provider-rail-card.is-focused {
+  transform:scale(1.055);
+}
