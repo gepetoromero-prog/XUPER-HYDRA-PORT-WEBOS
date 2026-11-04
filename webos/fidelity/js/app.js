@@ -3456,7 +3456,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     act.appendChild(document.createTextNode('Actors : '));
     var actV = el('span', 'val focusable', item.actors);
     actV._activate = function () {
-      var firstActor = String(item.actors || '').split(',')[0].replace(/^\\s+|\\s+$/g, '');
+      var firstActor = String(item.actors || '').split(',')[0].replace(/^\s+|\s+$/g, '');
       if (firstActor && firstActor !== '—') { openSearch(); setSearchQuery(firstActor); }
     };
     act.appendChild(actV);
