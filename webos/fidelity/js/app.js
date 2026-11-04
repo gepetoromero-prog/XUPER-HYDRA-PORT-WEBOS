@@ -1358,9 +1358,17 @@ function portalServiceCall(method, params, done, customTimeout) {
       return;
     }
     if (state.screen === 'settings') {
-      showScreen('home');
-      selectTab(state.tab, false);
-      if (tabEls[state.tab]) { setFocus(tabEls[state.tab]); }
+      var settingsRet = state.settingsReturn;
+      state.settingsReturn = null;
+      if (settingsRet && (settingsRet.screen === 'detail' || settingsRet.screen === 'search')) {
+        showScreen(settingsRet.screen);
+        if (settingsRet.focus && isVisible(settingsRet.focus)) { setFocus(settingsRet.focus); }
+      } else {
+        showScreen('home');
+        selectTab(settingsRet && settingsRet.tab !== undefined ? settingsRet.tab : state.tab, false);
+        if (settingsRet && settingsRet.focus && isVisible(settingsRet.focus)) { setFocus(settingsRet.focus); }
+        else if (tabEls[state.tab]) { setFocus(tabEls[state.tab]); }
+      }
       return;
     }
     if (state.screen === 'home') {
@@ -4165,6 +4173,9 @@ function portalServiceCall(method, params, done, customTimeout) {
 
   function openSettings() {
     if (!settingsMenu) { buildSettings(); }
+    if (state.screen !== 'settings') {
+      state.settingsReturn = { screen: state.screen, focus: state.focus, tab: state.tab };
+    }
     showScreen('settings');
     showSettingsPanel(0, false);
     setFocus(settingsItems[0]);
