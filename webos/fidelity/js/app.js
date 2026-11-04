@@ -2947,6 +2947,35 @@ function portalServiceCall(method, params, done, customTimeout) {
     return out;
   }
 
+  function providerGenreCollections(items) {
+    var groups = [], index = {};
+    for (var i = 0; i < items.length; i++) {
+      var genres = items[i].genres || [];
+      for (var g = 0; g < genres.length; g++) {
+        var label = String(genres[g] || '').replace(/^\s+|\s+$/g, '');
+        var key = norm(label);
+        if (!key || key === 'sin clasificar' || key === 'unknown') { continue; }
+        if (index[key] === undefined) {
+          index[key] = groups.length;
+          groups.push({ label: label, items: [] });
+        }
+        var group = groups[index[key]];
+        var exists = false;
+        for (var k = 0; k < group.items.length; k++) {
+          if (String(group.items[k].id) === String(items[i].id)) { exists = true; break; }
+        }
+        if (!exists) { group.items.push(items[i]); }
+      }
+    }
+    /* Only show useful collections backed by at least two real catalog titles. */
+    var useful = [];
+    for (var n = 0; n < groups.length; n++) {
+      if (groups[n].items.length >= 2) { useful.push(groups[n]); }
+    }
+    useful.sort(function (a, b) { return b.items.length - a.items.length; });
+    return useful.slice(0, 4);
+  }
+
   function appendProviderContinueSection(page, records, y) {
     if (!records || !records.length) { return y; }
     var heading = el('div', 'kids-subtitle', 'CONTINUAR VIENDO');
@@ -3157,6 +3186,11 @@ function portalServiceCall(method, params, done, customTimeout) {
       myListEmpty.style.cssText += ';white-space:normal;line-height:1.4;padding:22px;font-size:21px;';
       page.appendChild(myListEmpty);
       y += 164;
+    }
+    var genreCollections = providerGenreCollections(items);
+    for (var gc = 0; gc < genreCollections.length; gc++) {
+      y = appendProviderRail(page, genreCollections[gc].items,
+        'MÁS DE ' + genreCollections[gc].label.toUpperCase(), y, config.color);
     }
     appendProviderRail(page, items, 'TODO EL CATÁLOGO', y, config.color);
     page.scrollTop = 0;
