@@ -3919,3 +3919,36 @@ div, section, span { outline: none; }
   white-space: nowrap;
   overflow: hidden;
 }
+
+
+/* Provider experiences: independent streaming-service visual identities. */
+.provider-experience { overflow-y:auto !important; overflow-x:hidden !important; background:#090909; color:#fff; }
+.provider-experience .provider-back { z-index:8; display:flex; align-items:center; padding:0 18px; box-sizing:border-box; border-radius:8px; background:rgba(35,35,35,.92); color:#fff; font-size:20px; font-weight:700; }
+.provider-experience .provider-brand { z-index:2; font-size:46px; line-height:64px; font-weight:900; letter-spacing:-1px; }
+.provider-experience .provider-nav-item { z-index:3; display:flex; align-items:center; justify-content:center; box-sizing:border-box; color:#ddd; font-size:18px; font-weight:700; border-bottom:3px solid transparent; }
+.provider-experience .provider-nav-item.is-current { color:#fff; border-color:var(--provider-accent,#e50914); }
+.provider-experience .provider-hero { overflow:hidden; border-radius:10px; background:#171717; }
+.provider-experience .provider-hero .bento-img { object-fit:cover; }
+.provider-experience .provider-hero .bento-title { font-size:42px; font-weight:900; text-shadow:0 3px 12px #000; }
+.provider-experience .provider-hero-meta { z-index:3; color:#eee; font-size:21px; font-weight:700; text-shadow:0 2px 6px #000; }
+.provider-experience .provider-play,
+.provider-experience .provider-more { z-index:4; display:flex; align-items:center; justify-content:center; box-sizing:border-box; border-radius:7px; background:#f2f2f2; color:#111; font-size:20px; font-weight:800; }
+.provider-experience .provider-more { background:rgba(90,90,90,.88); color:#fff; }
+.provider-experience .provider-rail-title { z-index:2; color:#fff; font-size:29px; font-weight:800; letter-spacing:.2px; }
+.provider-experience .provider-rail-card { border-radius:7px; overflow:hidden; }
+.provider-experience .provider-rail-card .p-img { border-radius:7px; }
+.provider-experience.provider-theme-netflix { background:linear-gradient(180deg,#141414 0%,#080808 56%); --provider-accent:#e50914; }
+.provider-experience.provider-theme-netflix .provider-brand { color:#e50914; letter-spacing:1px; }
+.provider-experience.provider-theme-netflix .provider-nav-item.is-current { border-color:#e50914; }
+.provider-experience.provider-theme-prime { background:linear-gradient(180deg,#071b2b 0%,#07111b 58%); --provider-accent:#00a8e1; }
+.provider-experience.provider-theme-prime .provider-brand { color:#fff; }
+.provider-experience.provider-theme-disney { background:radial-gradient(ellipse at 50% 0%,#18315e 0%,#080e20 65%); --provider-accent:#72b7ff; }
+.provider-experience.provider-theme-disney .provider-brand { color:#dcecff; letter-spacing:2px; }
+.provider-experience.provider-theme-max { background:linear-gradient(145deg,#17102e 0%,#090817 65%); --provider-accent:#a88bff; }
+.provider-experience.provider-theme-max .provider-brand { color:#bda7ff; }
+.provider-experience.provider-theme-apple { background:linear-gradient(180deg,#171717 0%,#050505 70%); --provider-accent:#fff; }
+.provider-experience.provider-theme-apple .provider-brand { color:#fff; }
+.provider-experience.provider-theme-hulu { background:linear-gradient(180deg,#071b13 0%,#050b08 70%); --provider-accent:#1ce783; }
+.provider-experience.provider-theme-hulu .provider-brand { color:#1ce783; }
+.provider-experience.provider-theme-paramount { background:linear-gradient(180deg,#07152d 0%,#050b18 70%); --provider-accent:#55aaff; }
+.provider-experience.provider-theme-paramount .provider-brand { color:#fff; }
