@@ -3984,7 +3984,7 @@ function portalServiceCall(method, params, done, customTimeout) {
       filterBar.style.cssText = 'position:absolute;left:0;top:0;display:flex;gap:12px;z-index:5;height:54px;align-items:center;';
       var filterDefs = [{id:'all',label:'Todo'},{id:'movies',label:'Películas'},{id:'series',label:'Series'},{id:'free',label:'Gratis'},{id:'kids',label:'Infantil'},{id:'uhd',label:'UHD'}];
       for (var fi = 0; fi < filterDefs.length; fi++) {
-        (function (def) {
+        (function (def, filterIndex) {
           var chip = el('div', 'focusable', def.label);
           chip.style.cssText = 'padding:8px 18px;border-radius:18px;background:#292d35;color:#fff;font-size:19px;';
           chip._activate = function () {
@@ -3996,13 +3996,13 @@ function portalServiceCall(method, params, done, customTimeout) {
               for (var ci = 0; ci < activeChips.length; ci++) {
                 activeChips[ci].style.background = activeChips[ci].textContent === def.label ? '#c91923' : '#292d35';
               }
-              var focusChip = activeBar.querySelectorAll('.focusable')[fi];
+              var focusChip = activeBar.querySelectorAll('.focusable')[filterIndex];
               if (focusChip) { setFocus(focusChip); }
             }
           };
           if ((state.searchFilter || 'all') === def.id) { chip.style.background = '#c91923'; }
           filterBar.appendChild(chip);
-        })(filterDefs[fi]);
+        })(filterDefs[fi], fi);
       }
       searchResults.insertBefore(filterBar, searchNav);
     }
