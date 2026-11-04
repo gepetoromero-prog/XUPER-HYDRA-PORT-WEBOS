@@ -2923,6 +2923,8 @@ function portalServiceCall(method, params, done, customTimeout) {
   function appendProviderRail(page, items, title, y, accent) {
     if (!items || !items.length) { return y; }
     var heading = el('div', 'provider-rail-title', title);
+    if (title === 'PELÍCULAS') { heading.classList.add('provider-movies'); }
+    if (title === 'SERIES') { heading.classList.add('provider-series'); }
     abs(heading, 192, y, 1500, 42);
     page.appendChild(heading);
     var limit = Math.min(items.length, 6);
