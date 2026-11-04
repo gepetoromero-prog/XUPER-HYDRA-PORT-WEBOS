@@ -52,5 +52,12 @@ jobs:
           grep -Fq "cachefly.net" webos/services/com.webosflux.xuptertv.fidelity.service/proxy.js
           grep -Fq "var pending = PROVIDERS.length" webos/services/com.webosflux.xuptertv.fidelity.service/dnsx.js
           grep -Fq "PROVIDERS.forEach" webos/services/com.webosflux.xuptertv.fidelity.service/dnsx.js
-          test -x webos/services/com.webosflux.xuptertv.fidelity.service/ffmpeg
-          echo "Playback/DoH contract and FFmpeg executable bit OK"
+          archive=tools/vendor/ffmpeg-7.0.2-armhf-static.tar.xz
+          echo "7D41F558CB1F3395B313F8CEABED78B3731C79A0962ABF405EBB5CD393E93991  $archive" | sha256sum -c -
+          tmp="$(mktemp -d)"
+          tar -xJf "$archive" -C "$tmp" ffmpeg-7.0.2-armhf-static/ffmpeg
+          bin="$tmp/ffmpeg-7.0.2-armhf-static/ffmpeg"
+          echo "0AFBA4A11110E6E402053E0FC14C33A7EB207D7A588688AE87DBA471A0F06C71  $bin" | sha256sum -c -
+          chmod 755 "$bin"
+          test -x "$bin"
+          echo "Playback/DoH contract and FFmpeg archive integrity OK"
