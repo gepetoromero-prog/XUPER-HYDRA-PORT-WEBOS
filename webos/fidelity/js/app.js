@@ -2823,7 +2823,7 @@ function portalServiceCall(method, params, done, customTimeout) {
       var candidates = [item.provider || '', providerLabelFromRow(item.row)];
       for (var c = 0; c < candidates.length; c++) {
         var label = String(candidates[c] || '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
-        if (!label || /^\\d{4}$/.test(label) || ignored[norm(label).replace(/[^a-z0-9]+/g, '')]) { continue; }
+        if (!label || /^[0-9]{4}$/.test(label) || ignored[norm(label).replace(/[^a-z0-9]+/g, '')]) { continue; }
         if (providerConfigForValue(label)) { continue; }
         var words = providerWords(label);
         if (!words.length || words.length > 5) { continue; }
