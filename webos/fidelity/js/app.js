@@ -2766,6 +2766,24 @@ function portalServiceCall(method, params, done, customTimeout) {
     { id: 'max', label: 'MAX', aliases: ['max', 'hbo max'], color: '#44218c', tagline: 'Series y cine' }
   ];
 
+  function providerWords(value) {
+    return norm(value || '').replace(/[^a-z0-9]+/g, ' ').replace(/^\\s+|\\s+$/g, '').split(/\\s+/);
+  }
+
+  function providerHasAlias(value, alias) {
+    var words = providerWords(value);
+    var wanted = providerWords(alias);
+    if (!words.length || !wanted.length || wanted.length > words.length) { return false; }
+    for (var i = 0; i <= words.length - wanted.length; i++) {
+      var match = true;
+      for (var j = 0; j < wanted.length; j++) {
+        if (words[i + j] !== wanted[j]) { match = false; break; }
+      }
+      if (match) { return true; }
+    }
+    return false;
+  }
+
   function providerCatalogItems(provider) {
     var config = null;
     for (var p = 0; p < EXPLORE_PROVIDERS.length; p++) {
@@ -2774,11 +2792,15 @@ function portalServiceCall(method, params, done, customTimeout) {
     if (!config) { return []; }
     var out = [];
     for (var i = 0; i < VOD.length; i++) {
-      var raw = norm([VOD[i].provider || '', VOD[i].platform || '', VOD[i].service || '',
-        VOD[i].providerName || '', VOD[i].appName || ''].join(' '));
-      for (var a = 0; a < config.aliases.length; a++) {
-        if (raw.indexOf(norm(config.aliases[a])) !== -1) { out.push(VOD[i]); break; }
+      var values = [VOD[i].provider || '', VOD[i].platform || '', VOD[i].service || '',
+        VOD[i].providerName || '', VOD[i].appName || ''];
+      var found = false;
+      for (var v = 0; v < values.length && !found; v++) {
+        for (var a = 0; a < config.aliases.length; a++) {
+          if (providerHasAlias(values[v], config.aliases[a])) { found = true; break; }
+        }
       }
+      if (found) { out.push(VOD[i]); }
     }
     return out;
   }
@@ -4690,9 +4712,23 @@ function portalServiceCall(method, params, done, customTimeout) {
   }
 
   var pendingHistoryRecord = null;
+
+  function historyRecordMatchesItem(record, item) {
+    if (!record || !item) { return false; }
+    var recordProvider = norm(record.provider || '');
+    var itemProvider = norm(item.provider || '');
+    if (recordProvider && itemProvider && recordProvider !== itemProvider) { return false; }
+    if (String(record.id) === String(item.id)) { return true; }
+    var seasons = item._catalogSeasons || [];
+    for (var s = 0; s < seasons.length; s++) {
+      if (String(seasons[s].id) === String(record.id)) { return true; }
+    }
+    return !!(record.title && item.title && norm(record.title) === norm(item.title));
+  }
+
   function applyPendingHistoryEpisode(item) {
     var record = pendingHistoryRecord;
-    if (!record || !item || String(record.id) !== String(item.id) || !record.episodeId || !item.episodes) { return; }
+    if (!historyRecordMatchesItem(record, item) || !record.episodeId || !item.episodes) { return; }
     for (var i = 0; i < item.episodes.length; i++) {
       if (String(item.episodes[i].id) === record.episodeId) {
         state.detailEpisode = item.episodes[i];
@@ -4705,7 +4741,7 @@ function portalServiceCall(method, params, done, customTimeout) {
   function openHistoryRecord(record) {
     if (!record) { return; }
     for (var i = 0; i < VOD.length; i++) {
-      if (String(VOD[i].id) === String(record.id)) {
+      if (historyRecordMatchesItem(record, VOD[i])) {
         pendingHistoryRecord = record;
         openDetail(VOD[i]);
         return;
@@ -6730,7 +6766,7 @@ function portalServiceCall(method, params, done, customTimeout) {
       }
       if (state.playerMode === 'vod') {
         var resumeRecord = pendingHistoryRecord;
-        if (resumeRecord && state.playerItem && String(resumeRecord.id) === String(state.playerItem.id) &&
+        if (resumeRecord && historyRecordMatchesItem(resumeRecord, state.playerItem) &&
             !resumeRecord._resumeApplied && Number(resumeRecord.position) >= 3) {
           resumeRecord._resumeApplied = true;
           var resumeAt = Math.max(0, Number(resumeRecord.position) || 0);
