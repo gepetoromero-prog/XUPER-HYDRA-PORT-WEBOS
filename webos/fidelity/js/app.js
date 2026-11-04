@@ -3306,7 +3306,7 @@ function portalServiceCall(method, params, done, customTimeout) {
   function isAdultCatalogItem(item) {
     if (!item) { return false; }
     var labels = norm([item.category, item.row, item.provider, item.kind, item.title].join(' '));
-    return /(^|[\\s,_-])(adult|adulto|18\\+|xxx|erotico|porn)([\\s,_-]|$)/.test(labels);
+    return /(^|[\s,_-])(adult|adulto|18\+|xxx|erotico|porn)([\s,_-]|$)/.test(labels);
   }
 
   /* ============================================================ VOD DETAIL */
