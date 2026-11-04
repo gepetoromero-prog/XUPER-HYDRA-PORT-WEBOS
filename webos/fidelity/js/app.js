@@ -4085,15 +4085,17 @@ function portalServiceCall(method, params, done, customTimeout) {
     }
     for (var r = 0; r < rows.length; r++) { rows[r].classList.add('hidden'); }
     if (!searchKeyboard.querySelector('.kb-row-num')) {
-      var digits = [['1', '2', '3', '4', '5', '6', '7'], ['8', '9', '0', ' ']];
+      var digits = [['1', '2', '3', '4', '5', '6', '7'], ['8', '9', '0', 'Borrar']];
       for (var d = 0; d < digits.length; d++) {
         var row = el('div', 'kb-row kb-row-num');
         row.style.top = (264 + d * 88.5) + 'px';
         for (var c = 0; c < digits[d].length; c++) {
-          var key = el('div', 'kb-key focusable' + (digits[d][c] === ' ' ? ' space' : ''),
-            digits[d][c] === ' ' ? '' : digits[d][c]);
+          var key = el('div', 'kb-key focusable' + (digits[d][c] === ' ' ? ' space' : ''), digits[d][c]);
           key._activate = (function (ch) {
-            return function () { setSearchQuery(state.searchQuery + ch); };
+            return function () {
+              if (ch === 'Borrar') { setSearchQuery(state.searchQuery.slice(0, -1)); }
+              else { setSearchQuery(state.searchQuery + ch); }
+            };
           })(digits[d][c]);
           row.appendChild(key);
         }
