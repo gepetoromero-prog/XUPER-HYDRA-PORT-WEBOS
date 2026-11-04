@@ -2761,9 +2761,12 @@ function portalServiceCall(method, params, done, customTimeout) {
      muestran si el portal declara el proveedor en sus metadatos. */
   var EXPLORE_PROVIDERS = [
     { id: 'netflix', label: 'NETFLIX', aliases: ['netflix'], color: '#b20710', tagline: 'Series, películas y originales' },
-    { id: 'prime', label: 'PRIME VIDEO', aliases: ['prime', 'prime video', 'amazon prime'], color: '#087cba', tagline: 'Películas y series' },
-    { id: 'disney', label: 'DISNEY+', aliases: ['disney', 'disney plus', 'disney+'], color: '#172b63', tagline: 'Historias para todos' },
-    { id: 'max', label: 'MAX', aliases: ['max', 'hbo max'], color: '#44218c', tagline: 'Series y cine' }
+    { id: 'prime', label: 'PRIME VIDEO', aliases: ['prime video', 'amazon prime'], color: '#087cba', tagline: 'Películas y series' },
+    { id: 'disney', label: 'DISNEY+', aliases: ['disney', 'disney plus'], color: '#172b63', tagline: 'Historias para todos' },
+    { id: 'max', label: 'MAX / HBO', aliases: ['max', 'hbo max', 'hbo'], color: '#44218c', tagline: 'Series y cine' },
+    { id: 'apple', label: 'APPLE TV+', aliases: ['apple tv', 'apple tv plus'], color: '#555555', tagline: 'Series y películas' },
+    { id: 'hulu', label: 'HULU', aliases: ['hulu'], color: '#1b8f55', tagline: 'Series y entretenimiento' },
+    { id: 'paramount', label: 'PARAMOUNT+', aliases: ['paramount', 'paramount plus'], color: '#1769aa', tagline: 'Películas y series' }
   ];
 
   function providerWords(value) {
@@ -2792,8 +2795,11 @@ function portalServiceCall(method, params, done, customTimeout) {
     if (!config) { return []; }
     var out = [];
     for (var i = 0; i < VOD.length; i++) {
+      /* The portal snapshot classifies titles in its row names
+         (for example "Apple TV+ Movie" and "Paramount + Series").
+         Keep explicit provider fields too for future/live catalog formats. */
       var values = [VOD[i].provider || '', VOD[i].platform || '', VOD[i].service || '',
-        VOD[i].providerName || '', VOD[i].appName || ''];
+        VOD[i].providerName || '', VOD[i].appName || '', VOD[i].row || ''];
       var found = false;
       for (var v = 0; v < values.length && !found; v++) {
         for (var a = 0; a < config.aliases.length; a++) {
@@ -2859,7 +2865,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     for (var i = 0; i < EXPLORE_PROVIDERS.length; i++) {
       (function (config, index) {
         var tile = el('div', 'focusable provider-hub-tile');
-        abs(tile, 192 + index * 318, 230, 286, 190);
+        abs(tile, 192 + (index % 4) * 318, 230 + Math.floor(index / 4) * 220, 286, 190);
         tile.style.cssText += ';display:flex;flex-direction:column;justify-content:center;align-items:center;box-sizing:border-box;border-radius:18px;background:' +
           config.color + ';border:2px solid rgba(255,255,255,.16);color:#fff;';
         tile.appendChild(el('div', 'provider-hub-name', config.label));
