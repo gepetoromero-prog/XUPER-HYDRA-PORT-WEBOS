@@ -1080,6 +1080,20 @@ function portalServiceCall(method, params, done, customTimeout) {
       }
       box = closest(box.parentNode, '.scrollable');
     }
+    /* Provider pages live inside the fixed-height home pager.  Their own
+       scroll container must reveal D-pad focus as the user moves down rails. */
+    var providerPage = closest(node, '.provider-experience');
+    if (providerPage) {
+      var nr = node.getBoundingClientRect();
+      var pr = providerPage.getBoundingClientRect();
+      var topLimit = pr.top + 18;
+      var bottomLimit = pr.bottom - 18;
+      if (nr.top < topLimit) {
+        providerPage.scrollTop -= (topLimit - nr.top) + 14;
+      } else if (nr.bottom > bottomLimit) {
+        providerPage.scrollTop += (nr.bottom - bottomLimit) + 14;
+      }
+    }
   }
 
   function setFocus(node, silent) {
