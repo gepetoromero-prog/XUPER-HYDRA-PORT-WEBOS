@@ -3001,7 +3001,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     abs(track, 192, y + 54, 1500, 370);
     track.style.overflowX = 'auto';
     track.style.overflowY = 'hidden';
-    var limit = Math.min(items.length, 60);
+    var limit = items.length;
     track.style.width = '1500px';
     for (var i = 0; i < limit; i++) {
       var card = makePoster(items[i], i * 276, 0, 250, 360, { gold: true });
