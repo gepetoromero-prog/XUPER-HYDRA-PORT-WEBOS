@@ -3103,9 +3103,9 @@ function portalServiceCall(method, params, done, customTimeout) {
     page.appendChild(brand);
     var navItems = provider === 'netflix' ? ['INICIO', 'SERIES', 'PELÍCULAS', 'MI NETFLIX'] :
       (provider === 'prime' ? ['INICIO', 'PELÍCULAS', 'SERIES', 'MI MATERIAL'] :
-      (provider === 'apple' ? ['INICIO', 'APPLE TV+', 'TIENDA', 'MLS', 'BIBLIOTECA'] :
+      (provider === 'apple' ? ['INICIO', 'APPLE TV+', 'TIENDA', 'BIBLIOTECA'] :
       (provider === 'disney' ? ['INICIO', 'DISNEY+', 'PIXAR', 'MARVEL', 'STAR WARS', 'NAT GEO', 'PELÍCULAS', 'SERIES', 'MI LISTA'] :
-      (provider === 'max' ? ['INICIO', 'HBO', 'MAX ORIGINALS', 'DC', 'DISCOVERY', 'PELÍCULAS', 'SERIES', 'MI LISTA'] :
+      (provider === 'max' ? ['INICIO', 'HBO', 'DC', 'DISCOVERY', 'PELÍCULAS', 'SERIES', 'MI LISTA'] :
       (provider === 'hulu' ? ['INICIO', 'TV', 'PELÍCULAS', 'MI MATERIAL'] :
       ['INICIO', 'PELÍCULAS', 'SERIES', 'MI LISTA'])))));
     if (primeDualNav) {
@@ -3143,11 +3143,8 @@ function portalServiceCall(method, params, done, customTimeout) {
             ((label === 'MI LISTA' || label === 'MI NETFLIX' || label === 'MI MATERIAL' || label === 'BIBLIOTECA') ?
               'provider-my-list' : 'provider-top'));
           var sectionKey = norm(label).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-          var sectionTarget = label === 'DISNEY+' ? 'provider-section-pixar' :
-            (label === 'NAT GEO' ? 'provider-section-national-geographic' :
-            (label === 'MAX ORIGINALS' ? 'provider-section-hbo' :
-            (label === 'APPLE TV+' ? 'provider-section-apple-originals' :
-            (label === 'MLS' ? 'provider-section-mls' : 'provider-section-' + sectionKey))));
+          var sectionTarget = label === 'APPLE TV+' ? 'provider-section-apple-originals' :
+            (label === 'NAT GEO' ? 'provider-section-national-geographic' : 'provider-section-' + sectionKey);
           var node = page.querySelector('.' + sectionTarget) || page.querySelector('.' + target);
           if (node && node.scrollIntoView) {
             node.scrollIntoView({ behavior: 'smooth', block: 'start' });
