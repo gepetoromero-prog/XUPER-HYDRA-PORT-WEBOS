@@ -1344,9 +1344,17 @@ function portalServiceCall(method, params, done, customTimeout) {
     }
     if (state.screen === 'search') {
       clearSearchState();
-      showScreen('home');
-      selectTab(state.tab, false);
-      if (tabEls[state.tab]) { setFocus(tabEls[state.tab]); }
+      var searchRet = state.searchReturn;
+      state.searchReturn = null;
+      if (searchRet && searchRet.screen === 'detail') {
+        showScreen('detail');
+        if (searchRet.focus && isVisible(searchRet.focus)) { setFocus(searchRet.focus); }
+      } else {
+        showScreen('home');
+        selectTab(searchRet && searchRet.tab !== undefined ? searchRet.tab : state.tab, false);
+        if (searchRet && searchRet.focus && isVisible(searchRet.focus)) { setFocus(searchRet.focus); }
+        else if (tabEls[state.tab]) { setFocus(tabEls[state.tab]); }
+      }
       return;
     }
     if (state.screen === 'settings') {
@@ -3431,20 +3439,26 @@ function portalServiceCall(method, params, done, customTimeout) {
     genres.appendChild(el('span', 'label', 'Género : '));
     for (var g = 0; g < item.genres.length; g++) {
       /* Informational metadata must not take D-pad focus on the detail page. */
-      var chip = el('div', 'chip', item.genres[g]);
+      var chip = el('div', 'chip focusable', item.genres[g]);
+      chip._activate = (function (value) { return function () { openSearch(); setSearchQuery(value); }; })(item.genres[g]);
       genres.appendChild(chip);
     }
     detailLeft.appendChild(genres);
 
     var dir = el('div', 'detail-row');
     dir.appendChild(document.createTextNode('Director : '));
-    var dirV = el('span', 'val', item.director);
+    var dirV = el('span', 'val focusable', item.director);
+    dirV._activate = function () { if (item.director && item.director !== '—') { openSearch(); setSearchQuery(item.director); } };
     dir.appendChild(dirV);
     detailLeft.appendChild(dir);
 
     var act = el('div', 'detail-row');
     act.appendChild(document.createTextNode('Actors : '));
-    var actV = el('span', 'val', item.actors);
+    var actV = el('span', 'val focusable', item.actors);
+    actV._activate = function () {
+      var firstActor = String(item.actors || '').split(',')[0].replace(/^\\s+|\\s+$/g, '');
+      if (firstActor && firstActor !== '—') { openSearch(); setSearchQuery(firstActor); }
+    };
     act.appendChild(actV);
     detailLeft.appendChild(act);
 
@@ -3814,6 +3828,7 @@ function portalServiceCall(method, params, done, customTimeout) {
 
   function openSearch() {
     if (!searchKeyboard) { buildSearch(); }
+    state.searchReturn = { screen: state.screen, focus: state.focus, tab: state.tab };
     showScreen('search');
     if (!state.searchQuery) { renderPopularSearch(); }
     setFocus(searchInput);
