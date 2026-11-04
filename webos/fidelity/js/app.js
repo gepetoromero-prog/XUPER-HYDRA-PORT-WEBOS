@@ -3022,8 +3022,13 @@ function portalServiceCall(method, params, done, customTimeout) {
     }
     if (!config) { buildExplorePage(page); return; }
     clear(page);
-    page.className = page.className.replace(/provider-theme-[^ ]+/g, '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+    page.className = page.className.replace(/provider-theme-[^ ]+/g, '').replace(/provider-nav-left/g, '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
     page.classList.add('provider-experience', providerThemeClass(provider));
+    /* TV apps do not share one navigation pattern: Disney+, Max, Apple TV
+       and Hulu use a left-side navigation on connected-TV interfaces, while
+       Netflix's current redesign keeps its shortcuts across the top. */
+    var sideNav = provider === 'disney' || provider === 'max' || provider === 'apple' || provider === 'hulu';
+    if (sideNav) { page.classList.add('provider-nav-left'); }
     page.setAttribute('data-provider-id', provider);
     page.style.position = 'relative';
     page.style.minHeight = '1100px';
@@ -3041,17 +3046,23 @@ function portalServiceCall(method, params, done, customTimeout) {
     var brand = el('div', 'provider-brand', config.label);
     abs(brand, 192, 102, 620, 64);
     page.appendChild(brand);
-    var navItems = ['INICIO', 'PELÍCULAS', 'SERIES', 'MI LISTA'];
+    var navItems = provider === 'netflix' ? ['INICIO', 'SERIES', 'PELÍCULAS', 'MI NETFLIX'] :
+      (provider === 'apple' ? ['INICIO', 'APPLE TV+', 'TIENDA', 'BIBLIOTECA'] :
+      (provider === 'hulu' ? ['INICIO', 'TV', 'PELÍCULAS', 'MI MATERIAL'] :
+      ['INICIO', 'PELÍCULAS', 'SERIES', 'MI LISTA']));
     for (var n = 0; n < navItems.length; n++) {
       (function (label, index) {
         var nav = el('div', 'focusable provider-nav-item' + (index === 0 ? ' is-current' : ''), label);
-        abs(nav, 192 + index * 172, 174, 158, 48);
+        abs(nav, sideNav ? 28 : 192 + index * 172, sideNav ? 250 + index * 72 : 174,
+          sideNav ? 140 : 158, sideNav ? 54 : 48);
         nav._activate = function () {
           var allNav = page.querySelectorAll('.provider-nav-item');
           for (var a = 0; a < allNav.length; a++) { allNav[a].classList.remove('is-current'); }
           nav.classList.add('is-current');
-          var target = label === 'PELÍCULAS' ? 'provider-movies' :
-            (label === 'SERIES' ? 'provider-series' : (label === 'MI LISTA' ? 'provider-my-list' : 'provider-top'));
+          var target = (label === 'PELÍCULAS' || label === 'TIENDA') ? 'provider-movies' :
+            ((label === 'SERIES' || label === 'TV' || label === 'APPLE TV+') ? 'provider-series' :
+            ((label === 'MI LISTA' || label === 'MI NETFLIX' || label === 'MI MATERIAL' || label === 'BIBLIOTECA') ?
+              'provider-my-list' : 'provider-top'));
           var node = page.querySelector('.' + target);
           if (node && node.scrollIntoView) {
             node.scrollIntoView({ behavior: 'smooth', block: 'start' });
