@@ -936,7 +936,7 @@ function portalServiceCall(method, params, done, customTimeout) {
       style: 0,
       subtitle: true
     },
-    crOn: false,
+    crOn: !!localParent.adultEnabled,
     favs: {}
   };
 
@@ -945,6 +945,11 @@ function portalServiceCall(method, params, done, customTimeout) {
      webOS models have limited persistent storage. */
   var LOCAL_PROFILE_KEY = 'xuper_local_profile_v1';
   var LOCAL_PLAYBACK_KEY = 'xuper_global_playback_v1';
+  var LOCAL_PARENT_KEY = 'xuper_parent_controls_v1';
+  var localParent = safeLocalRead(LOCAL_PARENT_KEY, { pin: '', adultEnabled: false });
+  var parentEntry = '';
+  var parentMode = localParent.pin ? 'verify' : 'new';
+  var parentUnlocked = false;
   var localProfile = { id: '', createdAt: 0, history: [] };
 
   function safeLocalRead(key, fallback) {
@@ -4348,20 +4353,93 @@ function portalServiceCall(method, params, done, customTimeout) {
   function buildParentPanel() {
     var p = el('div', 'settings-panel');
     p.appendChild(el('div', 'pl-title', 'Configuraciones del Control Parental'));
-    p.appendChild(el('div', 'pl-tip', 'Ingrese la contraseña de cuatro dígitos e ingrese viendo el programa de bloqueo.'));
-    p.appendChild(el('div', 'pl-label', 'Contraseña inicial:'));
+    var tipText = parentMode === 'new' ? 'Crea una contraseña nueva de cuatro dígitos.' :
+      (parentMode === 'change' ? 'Introduce la nueva contraseña de cuatro dígitos.' :
+       'Introduce tu contraseña de cuatro dígitos para desbloquear los controles.');
+    p.appendChild(el('div', 'pl-tip', tipText));
+    p.appendChild(el('div', 'pl-label', parentMode === 'verify' ? 'Contraseña:' : 'Nueva contraseña:'));
     var boxes = el('div', 'pl-boxes');
+    var boxNodes = [];
     for (var i = 0; i < 4; i++) {
-      var b = el('div', 'pl-box focusable');
-      b._activate = function () { /* numeric capture not reconstructed */ };
+      var b = el('div', 'pl-box', parentEntry.charAt(i) ? '•' : '');
+      boxNodes.push(b);
       boxes.appendChild(b);
       if (i < 3) { boxes.appendChild(el('div', 'pl-sep')); }
     }
     p.appendChild(boxes);
-    p.appendChild(el('div', 'pl-note', ''));
-    var ok = el('div', 'pl-ok focusable', 'OK');
-    ok._activate = function () { /* password validation not reconstructed */ };
+    var note = el('div', 'pl-note', '');
+    note.style.minHeight = '42px';
+    p.appendChild(note);
+    var keypad = el('div', 'pl-keypad');
+    keypad.style.cssText = 'display:grid;grid-template-columns:repeat(5,76px);gap:12px;margin:22px 0 18px 40px;';
+    function updateEntry() {
+      for (var b = 0; b < boxNodes.length; b++) { boxNodes[b].textContent = parentEntry.charAt(b) ? '•' : ''; }
+      note.textContent = parentEntry.length + ' de 4 dígitos';
+    }
+    function addDigit(digit) {
+      if (parentEntry.length < 4) { parentEntry += digit; updateEntry(); }
+    }
+    var digits = ['1','2','3','4','5','6','7','8','9','Borrar','0','Limpiar'];
+    for (var k = 0; k < digits.length; k++) {
+      (function (digit) {
+        var key = el('div', 'pl-ok focusable', digit);
+        key.style.cssText = 'width:76px;height:62px;line-height:62px;text-align:center;margin:0;font-size:25px;';
+        key._activate = function () {
+          if (digit === 'Borrar') { parentEntry = parentEntry.slice(0, -1); updateEntry(); }
+          else if (digit === 'Limpiar') { parentEntry = ''; updateEntry(); }
+          else { addDigit(digit); }
+          setFocus(key);
+        };
+        keypad.appendChild(key);
+      })(digits[k]);
+    }
+    p.appendChild(keypad);
+    var ok = el('div', 'pl-ok focusable', parentMode === 'verify' ? 'Desbloquear' : 'Guardar contraseña');
+    ok._activate = function () {
+      if (parentEntry.length !== 4) { note.textContent = 'La contraseña debe tener 4 dígitos.'; return; }
+      if (parentMode === 'verify') {
+        if (parentEntry !== String(localParent.pin || '')) {
+          parentEntry = ''; updateEntry(); note.textContent = 'Contraseña incorrecta.'; return;
+        }
+        parentUnlocked = true;
+        parentEntry = '';
+        parentMode = 'unlocked';
+        showSettingsPanel(3, true);
+        return;
+      }
+      localParent.pin = parentEntry;
+      localParent.adultEnabled = !!state.crOn;
+      safeLocalWrite(LOCAL_PARENT_KEY, localParent);
+      parentUnlocked = true;
+      parentEntry = '';
+      parentMode = 'unlocked';
+      showSettingsPanel(3, true);
+    };
     p.appendChild(ok);
+    if (parentMode === 'unlocked') {
+      p.appendChild(el('div', 'pl-tip', 'Control parental desbloqueado en esta sesión.'));
+      var adult = el('div', 'pl-ok focusable', (state.crOn ? 'Desactivar' : 'Activar') + ' contenido adulto');
+      adult._activate = function () {
+        state.crOn = !state.crOn;
+        localParent.adultEnabled = state.crOn;
+        safeLocalWrite(LOCAL_PARENT_KEY, localParent);
+        showSettingsPanel(3, false);
+        setFocus(adult);
+      };
+      p.appendChild(adult);
+      var change = el('div', 'pl-ok focusable', 'Cambiar contraseña');
+      change._activate = function () {
+        parentMode = 'change'; parentEntry = ''; showSettingsPanel(3, true);
+      };
+      p.appendChild(change);
+      var lock = el('div', 'pl-ok focusable', 'Bloquear controles');
+      lock._activate = function () {
+        parentUnlocked = false; parentMode = 'verify'; parentEntry = '';
+        showSettingsPanel(3, true);
+      };
+      p.appendChild(lock);
+    }
+    updateEntry();
     return p;
   }
 
