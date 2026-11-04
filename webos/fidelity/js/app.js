@@ -941,7 +941,7 @@ function portalServiceCall(method, params, done, customTimeout) {
       style: 0,
       subtitle: true
     },
-    crOn: !!localParent.adultEnabled,
+    crOn: false,
     favs: {}
   };
 
@@ -4481,6 +4481,7 @@ function portalServiceCall(method, params, done, customTimeout) {
           parentEntry = ''; updateEntry('Contraseña incorrecta.'); return;
         }
         parentUnlocked = true;
+        state.crOn = !!localParent.adultEnabled;
         parentEntry = '';
         parentMode = 'unlocked';
         showSettingsPanel(3, true);
