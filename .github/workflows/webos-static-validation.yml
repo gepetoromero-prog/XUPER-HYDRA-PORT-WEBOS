@@ -26,7 +26,11 @@ jobs:
           while IFS= read -r -d '' file; do
             echo "Checking $file"
             node --check "$file"
-          done < <(find webos/fidelity/js webos/services -type f \\( -name '*.js' -o -name '*.mjs' \\) -print0)
+          done < <(find webos/fidelity/js webos/services -type f -name '*.js' -print0)
+          while IFS= read -r -d '' file; do
+            echo "Checking $file"
+            node --check "$file"
+          done < <(find webos/fidelity/js webos/services -type f -name '*.mjs' -print0)
       - name: Check package versions and protected playback contract
         shell: bash
         run: |
@@ -46,6 +50,7 @@ jobs:
           grep -Fq "relay.register" webos/services/com.webosflux.xuptertv.fidelity.service/index.js
           grep -Fq "resolveHostIp" webos/services/com.webosflux.xuptertv.fidelity.service/proxy.js
           grep -Fq "cachefly.net" webos/services/com.webosflux.xuptertv.fidelity.service/proxy.js
-          grep -Fq "Promise.all" webos/services/com.webosflux.xuptertv.fidelity.service/dnsx.js
+          grep -Fq "var pending = PROVIDERS.length" webos/services/com.webosflux.xuptertv.fidelity.service/dnsx.js
+          grep -Fq "PROVIDERS.forEach" webos/services/com.webosflux.xuptertv.fidelity.service/dnsx.js
           test -x webos/services/com.webosflux.xuptertv.fidelity.service/ffmpeg
           echo "Playback/DoH contract and FFmpeg executable bit OK"
