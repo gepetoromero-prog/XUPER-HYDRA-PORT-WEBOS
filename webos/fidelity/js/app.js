@@ -4114,6 +4114,10 @@ function portalServiceCall(method, params, done, customTimeout) {
       var refreshedHistory = buildHistoryPanel();
       settingsRight.replaceChild(refreshedHistory, settingsPanels.history);
       settingsPanels.history = refreshedHistory;
+    } else if (activeId === 'parent' && settingsPanels.parent && settingsRight) {
+      var refreshedParent = buildParentPanel();
+      settingsRight.replaceChild(refreshedParent, settingsPanels.parent);
+      settingsPanels.parent = refreshedParent;
     } else if (activeId === 'netdiag' && settingsPanels.netdiag && settingsPanels.netdiag._ensureDiag) {
       settingsPanels.netdiag._ensureDiag();
     }
@@ -4353,31 +4357,51 @@ function portalServiceCall(method, params, done, customTimeout) {
   function buildParentPanel() {
     var p = el('div', 'settings-panel');
     p.appendChild(el('div', 'pl-title', 'Configuraciones del Control Parental'));
-    var tipText = parentMode === 'new' ? 'Crea una contraseña nueva de cuatro dígitos.' :
-      (parentMode === 'change' ? 'Introduce la nueva contraseña de cuatro dígitos.' :
-       'Introduce tu contraseña de cuatro dígitos para desbloquear los controles.');
-    p.appendChild(el('div', 'pl-tip', tipText));
-    p.appendChild(el('div', 'pl-label', parentMode === 'verify' ? 'Contraseña:' : 'Nueva contraseña:'));
+    if (parentMode === 'unlocked' && parentUnlocked) {
+      p.appendChild(el('div', 'pl-tip', 'Control parental desbloqueado en esta sesión.'));
+      var adult = el('div', 'pl-ok focusable', (state.crOn ? 'Desactivar' : 'Activar') + ' contenido adulto');
+      adult._activate = function () {
+        state.crOn = !state.crOn;
+        localParent.adultEnabled = state.crOn;
+        safeLocalWrite(LOCAL_PARENT_KEY, localParent);
+        showSettingsPanel(3, true);
+      };
+      p.appendChild(adult);
+      var change = el('div', 'pl-ok focusable', 'Cambiar contraseña');
+      change._activate = function () {
+        parentMode = 'change'; parentEntry = ''; showSettingsPanel(3, true);
+      };
+      p.appendChild(change);
+      var lock = el('div', 'pl-ok focusable', 'Bloquear controles');
+      lock._activate = function () {
+        parentUnlocked = false; parentMode = 'verify'; parentEntry = '';
+        showSettingsPanel(3, true);
+      };
+      p.appendChild(lock);
+      return p;
+    }
+
+    var isVerify = parentMode === 'verify';
+    p.appendChild(el('div', 'pl-tip', isVerify ?
+      'Introduce tu contraseña de cuatro dígitos para desbloquear los controles.' :
+      'Crea una contraseña nueva de cuatro dígitos.'));
+    p.appendChild(el('div', 'pl-label', isVerify ? 'Contraseña:' : 'Nueva contraseña:'));
     var boxes = el('div', 'pl-boxes');
     var boxNodes = [];
     for (var i = 0; i < 4; i++) {
       var b = el('div', 'pl-box', parentEntry.charAt(i) ? '•' : '');
-      boxNodes.push(b);
-      boxes.appendChild(b);
+      boxNodes.push(b); boxes.appendChild(b);
       if (i < 3) { boxes.appendChild(el('div', 'pl-sep')); }
     }
     p.appendChild(boxes);
-    var note = el('div', 'pl-note', '');
+    var note = el('div', 'pl-note', '0 de 4 dígitos');
     note.style.minHeight = '42px';
     p.appendChild(note);
     var keypad = el('div', 'pl-keypad');
     keypad.style.cssText = 'display:grid;grid-template-columns:repeat(5,76px);gap:12px;margin:22px 0 18px 40px;';
-    function updateEntry() {
+    function updateEntry(message) {
       for (var b = 0; b < boxNodes.length; b++) { boxNodes[b].textContent = parentEntry.charAt(b) ? '•' : ''; }
-      note.textContent = parentEntry.length + ' de 4 dígitos';
-    }
-    function addDigit(digit) {
-      if (parentEntry.length < 4) { parentEntry += digit; updateEntry(); }
+      note.textContent = message || (parentEntry.length + ' de 4 dígitos');
     }
     var digits = ['1','2','3','4','5','6','7','8','9','Borrar','0','Limpiar'];
     for (var k = 0; k < digits.length; k++) {
@@ -4385,21 +4409,22 @@ function portalServiceCall(method, params, done, customTimeout) {
         var key = el('div', 'pl-ok focusable', digit);
         key.style.cssText = 'width:76px;height:62px;line-height:62px;text-align:center;margin:0;font-size:25px;';
         key._activate = function () {
-          if (digit === 'Borrar') { parentEntry = parentEntry.slice(0, -1); updateEntry(); }
-          else if (digit === 'Limpiar') { parentEntry = ''; updateEntry(); }
-          else { addDigit(digit); }
+          if (digit === 'Borrar') { parentEntry = parentEntry.slice(0, -1); }
+          else if (digit === 'Limpiar') { parentEntry = ''; }
+          else if (parentEntry.length < 4) { parentEntry += digit; }
+          updateEntry();
           setFocus(key);
         };
         keypad.appendChild(key);
       })(digits[k]);
     }
     p.appendChild(keypad);
-    var ok = el('div', 'pl-ok focusable', parentMode === 'verify' ? 'Desbloquear' : 'Guardar contraseña');
+    var ok = el('div', 'pl-ok focusable', isVerify ? 'Desbloquear' : 'Guardar contraseña');
     ok._activate = function () {
-      if (parentEntry.length !== 4) { note.textContent = 'La contraseña debe tener 4 dígitos.'; return; }
-      if (parentMode === 'verify') {
+      if (parentEntry.length !== 4) { updateEntry('La contraseña debe tener 4 dígitos.'); return; }
+      if (isVerify) {
         if (parentEntry !== String(localParent.pin || '')) {
-          parentEntry = ''; updateEntry(); note.textContent = 'Contraseña incorrecta.'; return;
+          parentEntry = ''; updateEntry('Contraseña incorrecta.'); return;
         }
         parentUnlocked = true;
         parentEntry = '';
@@ -4416,33 +4441,8 @@ function portalServiceCall(method, params, done, customTimeout) {
       showSettingsPanel(3, true);
     };
     p.appendChild(ok);
-    if (parentMode === 'unlocked') {
-      p.appendChild(el('div', 'pl-tip', 'Control parental desbloqueado en esta sesión.'));
-      var adult = el('div', 'pl-ok focusable', (state.crOn ? 'Desactivar' : 'Activar') + ' contenido adulto');
-      adult._activate = function () {
-        state.crOn = !state.crOn;
-        localParent.adultEnabled = state.crOn;
-        safeLocalWrite(LOCAL_PARENT_KEY, localParent);
-        showSettingsPanel(3, false);
-        setFocus(adult);
-      };
-      p.appendChild(adult);
-      var change = el('div', 'pl-ok focusable', 'Cambiar contraseña');
-      change._activate = function () {
-        parentMode = 'change'; parentEntry = ''; showSettingsPanel(3, true);
-      };
-      p.appendChild(change);
-      var lock = el('div', 'pl-ok focusable', 'Bloquear controles');
-      lock._activate = function () {
-        parentUnlocked = false; parentMode = 'verify'; parentEntry = '';
-        showSettingsPanel(3, true);
-      };
-      p.appendChild(lock);
-    }
-    updateEntry();
     return p;
   }
-
   function buildFeedbackPanel() {
     var p = el('div', 'settings-panel');
     p.appendChild(el('div', 'fb-title', 'Ayuda y Feedback'));
