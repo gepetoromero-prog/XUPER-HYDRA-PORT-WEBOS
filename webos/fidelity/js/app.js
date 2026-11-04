@@ -899,6 +899,11 @@ function portalServiceCall(method, params, done, customTimeout) {
   };
 
   /* ---------------------------------------------------------------- state */
+  var LOCAL_PARENT_KEY = 'xuper_parent_controls_v1';
+  var localParent = safeLocalRead(LOCAL_PARENT_KEY, { pin: '', adultEnabled: false });
+  var parentEntry = '';
+  var parentMode = localParent.pin ? 'verify' : 'new';
+  var parentUnlocked = false;
   var state = {
     screen: 'welcome',
     tab: 2,
@@ -945,11 +950,6 @@ function portalServiceCall(method, params, done, customTimeout) {
      webOS models have limited persistent storage. */
   var LOCAL_PROFILE_KEY = 'xuper_local_profile_v1';
   var LOCAL_PLAYBACK_KEY = 'xuper_global_playback_v1';
-  var LOCAL_PARENT_KEY = 'xuper_parent_controls_v1';
-  var localParent = safeLocalRead(LOCAL_PARENT_KEY, { pin: '', adultEnabled: false });
-  var parentEntry = '';
-  var parentMode = localParent.pin ? 'verify' : 'new';
-  var parentUnlocked = false;
   var localProfile = { id: '', createdAt: 0, history: [] };
 
   function safeLocalRead(key, fallback) {
