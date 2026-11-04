@@ -221,6 +221,7 @@
       id: apiText(raw.id || raw.vodId || raw.programId || raw.program_id || raw.tmdb_id, 'api-' + index),
       title: apiText(raw.title || raw.name || raw.programName || raw.programTitle || raw.original_title, 'Sin título'),
       category: norm(apiText(raw.category || raw.section || raw.collection || raw.homeSection, '')),
+      provider: apiText(raw.provider || raw.platform || raw.service || raw.providerName || raw.appName, ''),
       score: apiText(raw.score || raw.vote_average || raw.rating || raw.movieRate || raw.programScore, '—'),
       year: apiText(raw.year || raw.release_year || raw.programYear || (raw.releaseDate || raw.releaseTime || raw.release_date || '').slice(0, 4), '—'),
       duration: apiText(runtime, '—'),
@@ -2756,24 +2757,47 @@ function portalServiceCall(method, params, done, customTimeout) {
     page.appendChild(row);
   }
 
-  /* EXPLORAR: hero 1249x703 + three stacked 413x226 tiles on the right,
-     provider row label and logo strip underneath. */
+  /* EXPLORAR: agrupa únicamente títulos cuyo proveedor viene declarado
+     por el catálogo. No asigna plataformas por suposiciones ni duplica títulos. */
+  function providerCatalogItems(provider) {
+    var out = [];
+    for (var i = 0; i < VOD.length; i++) {
+      var value = norm(VOD[i].provider || '');
+      if (value && value.indexOf(provider) !== -1) { out.push(VOD[i]); }
+    }
+    return out;
+  }
+
   function buildExplorePage(page) {
     var source = VOD.length ? VOD : [];
-    page.appendChild(makeBento(source[0], 192, 38.5, 1249, 703, { shade: true }));
-    for (var i = 0; i < 3; i++) {
-      page.appendChild(makeBento(source[(i + 1) % source.length], 1446, 38.5 + i * 231,
-                                 413, 226, { badge: i === 2 ? 'Adult' : '' }));
+    if (source.length) {
+      page.appendChild(makeBento(source[0], 192, 38.5, 1249, 703, { shade: true }));
+      for (var i = 0; i < 3; i++) {
+        page.appendChild(makeBento(source[(i + 1) % source.length], 1446, 38.5 + i * 231,
+                                   413, 226, { badge: '' }));
+      }
     }
-    page.appendChild(el('div', 'explore-row-title', 'Netflix'));
-    var strip = el('div', 'explore-strip');
-    abs(strip, 192, 811.5, 1920, 130);
-    for (var k = 0; k < 8; k++) {
-      var cell = el('div', 'explore-logo');
-      abs(cell, k * 272, 0, 260, 120);
-      strip.appendChild(cell);
+    var providers = [
+      { id: 'netflix', label: 'NETFLIX' },
+      { id: 'prime', label: 'PRIME VIDEO' },
+      { id: 'disney', label: 'DISNEY+' },
+      { id: 'max', label: 'MAX' }
+    ];
+    var y = 820;
+    var found = 0;
+    for (var p = 0; p < providers.length; p++) {
+      var items = providerCatalogItems(providers[p].id);
+      if (!items.length) { continue; }
+      appendCatalogGrid(page, items, y, providers[p].label);
+      y += 50 + Math.ceil(Math.min(items.length, 60) / 6) * 390 + 34;
+      found++;
     }
-    page.appendChild(strip);
+    if (!found) {
+      var note = el('div', 'catalog-empty',
+        'Los catálogos por plataforma aparecerán aquí cuando el proveedor esté identificado en los datos del servicio.');
+      abs(note, 192, 830, 1450, 90);
+      page.appendChild(note);
+    }
   }
 
   /* ============================================================ VOD DETAIL */
@@ -7299,6 +7323,18 @@ function portalServiceCall(method, params, done, customTimeout) {
       setFocus(f, true);
       if (f._activate) { f._activate(); }
     });
+    /* Magic Remote / ratón: mover el puntero también sincroniza el foco
+       visual. La activación sigue pasando por el click existente. */
+    document.addEventListener('pointermove', function (e) {
+      var f = closest(e.target, '.focusable');
+      if (f && f !== state.focus) { setFocus(f, true); }
+    }, false);
+    if (!window.PointerEvent) {
+      document.addEventListener('mousemove', function (e) {
+        var f = closest(e.target, '.focusable');
+        if (f && f !== state.focus) { setFocus(f, true); }
+      }, false);
+    }
     buildSearch();
     startServiceKeepAlive();
     portalServiceCall('prewarm', {}, function () {});
