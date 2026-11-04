@@ -4247,3 +4247,34 @@ div, section, span { outline: none; }
   font-size:17px;
   font-weight:700;
 }
+
+
+/* Prime Video living-room layout: primary top navigation plus a separate
+   utility rail, matching the two-level navigation used on supported TVs. */
+.provider-theme-prime.provider-nav-prime-dual .provider-nav-item {
+  border-radius:4px;
+  padding:0 16px;
+  background:rgba(8,18,28,.78);
+}
+.provider-theme-prime .provider-prime-utility {
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  box-sizing:border-box;
+  padding:0 14px;
+  min-height:54px;
+  border:1px solid transparent;
+  border-radius:8px;
+  background:rgba(0,0,0,.3);
+  color:#e8f5fc;
+  font-size:16px;
+  font-weight:700;
+}
+.provider-theme-prime .provider-prime-utility.is-current {
+  border-left:4px solid #00a8e1;
+  background:rgba(0,168,225,.17);
+}
+.provider-theme-prime .provider-prime-utility.is-focused {
+  outline:2px solid #fff;
+  outline-offset:2px;
+}
