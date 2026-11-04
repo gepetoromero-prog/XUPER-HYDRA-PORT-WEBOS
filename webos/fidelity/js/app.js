@@ -2862,7 +2862,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     return out;
   }
 
-  function providerContinueItems(items) {
+  function providerContinueRecords(items) {
     var history = localProfile.history || [];
     var out = [];
     for (var h = 0; h < history.length; h++) {
@@ -2872,14 +2872,42 @@ function portalServiceCall(method, params, done, customTimeout) {
             (history[h].title && norm(history[h].title) === norm(item.title))) {
           var duplicate = false;
           for (var d = 0; d < out.length; d++) {
-            if (String(out[d].id) === String(item.id)) { duplicate = true; break; }
+            if (String(out[d].item.id) === String(item.id)) { duplicate = true; break; }
           }
-          if (!duplicate) { out.push(item); }
+          if (!duplicate) { out.push({ item: item, record: history[h] }); }
           break;
         }
       }
     }
     return out;
+  }
+
+  function appendProviderContinueSection(page, records, y) {
+    if (!records || !records.length) { return y; }
+    var heading = el('div', 'kids-subtitle', 'CONTINUAR VIENDO');
+    abs(heading, 192, y, 1249, 40);
+    page.appendChild(heading);
+    y += 50;
+    var limit = Math.min(records.length, 60);
+    for (var i = 0; i < limit; i++) {
+      (function (entry, index) {
+        var col = index % 6;
+        var row = Math.floor(index / 6);
+        var card = makePoster(entry.item, 192 + col * 276, y + row * 390, 250, 360, { gold: true });
+        card._activate = function () { openHistoryRecord(entry.record); };
+        var track = el('div', 'provider-progress-track');
+        track.style.cssText = 'position:absolute;left:8px;bottom:8px;width:234px;height:6px;background:rgba(255,255,255,.42);border-radius:4px;overflow:hidden;z-index:5;';
+        var fill = el('div', 'provider-progress-fill');
+        var duration = Number(entry.record.duration) || 0;
+        var position = Number(entry.record.position) || 0;
+        var percent = duration > 0 ? Math.max(0, Math.min(100, position * 100 / duration)) : 0;
+        fill.style.cssText = 'height:100%;width:' + percent + '%;background:#e50914;border-radius:4px;';
+        track.appendChild(fill);
+        card.appendChild(track);
+        page.appendChild(card);
+      })(records[i], i);
+    }
+    return y + Math.ceil(limit / 6) * 390 + 56;
   }
 
   function appendProviderSection(page, items, y, title) {
@@ -2919,7 +2947,7 @@ function portalServiceCall(method, params, done, customTimeout) {
       page.appendChild(hero);
 
       var y = 820;
-      y = appendProviderSection(page, providerContinueItems(items), y, 'CONTINUAR VIENDO');
+      y = appendProviderContinueSection(page, providerContinueRecords(items), y);
       var movies = [];
       var series = [];
       for (var m = 0; m < items.length; m++) {
