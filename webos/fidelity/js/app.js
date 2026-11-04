@@ -2948,7 +2948,7 @@ function portalServiceCall(method, params, done, customTimeout) {
   }
 
   function providerGenreCollections(items) {
-    var groups = [], index = {};
+    var groups = [], index = Object.create(null);
     for (var i = 0; i < items.length; i++) {
       var genres = items[i].genres || [];
       for (var g = 0; g < genres.length; g++) {
