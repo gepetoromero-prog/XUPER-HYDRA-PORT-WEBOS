@@ -6975,6 +6975,8 @@ function portalServiceCall(method, params, done, customTimeout) {
     if (it) { restoreSmoothMode(it); }
     stopPlayerVideo();
     if (!it) { return; }
+    /* Detail view also uses the VOD engine before expanding to fullscreen. */
+    state.playerMode = 'vod';
     vodAudioChosen = false;
     vodCurrentAudioTrack = 0;
     /* resolvePlayerStream returns the same audio/subtitle metadata needed by
