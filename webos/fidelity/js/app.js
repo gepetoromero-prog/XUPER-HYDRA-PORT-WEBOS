@@ -1302,9 +1302,37 @@ function portalServiceCall(method, params, done, customTimeout) {
         showScreen('search');
         setFocus(ret.focus);
       } else {
+        var returnProviderPage = ret && ret.focus ? closest(ret.focus, '.provider-experience') : null;
+        var returnProviderId = returnProviderPage ? returnProviderPage.getAttribute('data-provider-id') : '';
+        var returnProviderScroll = returnProviderPage ? returnProviderPage.scrollTop : 0;
+        var returnProviderItemId = state.detail && state.detail.id !== undefined ? String(state.detail.id) : '';
+        var returnProviderTrack = ret && ret.focus ? closest(ret.focus, '.provider-rail-track') : null;
+        var returnProviderTrackScroll = returnProviderTrack ? returnProviderTrack.scrollLeft : 0;
         showScreen('home');
         selectTab(state.tab, false);
-        if (ret && ret.focus && isVisible(ret.focus)) { setFocus(ret.focus); }
+        /* Repaint the service page after a detail view so favorite changes and
+           watch progress appear immediately when the viewer returns. */
+        if (returnProviderPage && returnProviderId) {
+          buildProviderExperience(returnProviderPage, returnProviderId);
+          returnProviderPage.scrollTop = returnProviderScroll;
+          var refreshedCards = returnProviderPage.querySelectorAll('.provider-rail-card, .provider-hero');
+          var restored = null;
+          for (var rc = 0; rc < refreshedCards.length; rc++) {
+            var refreshedItem = refreshedCards[rc]._item;
+            if (refreshedItem && String(refreshedItem.id) === returnProviderItemId) {
+              restored = refreshedCards[rc];
+              break;
+            }
+          }
+          if (restored) {
+            var refreshedTrack = closest(restored, '.provider-rail-track');
+            if (refreshedTrack) { refreshedTrack.scrollLeft = returnProviderTrackScroll; }
+            setFocus(restored);
+          } else {
+            var providerFirst = firstIn(returnProviderPage);
+            if (providerFirst) { setFocus(providerFirst); }
+          }
+        } else if (ret && ret.focus && isVisible(ret.focus)) { setFocus(ret.focus); }
         else if (tabEls[state.tab]) { setFocus(tabEls[state.tab]); }
       }
       return;
@@ -2996,6 +3024,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     clear(page);
     page.className = page.className.replace(/provider-theme-[^ ]+/g, '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
     page.classList.add('provider-experience', providerThemeClass(provider));
+    page.setAttribute('data-provider-id', provider);
     page.style.position = 'relative';
     page.style.minHeight = '1100px';
 
