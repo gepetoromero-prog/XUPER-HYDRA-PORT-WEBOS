@@ -54,7 +54,7 @@ Estados:
 | B4 | Feedback | Centro de ayuda | Enlace sin destino | `fragment_aboutus.xml` / web autorizada |
 | B5 | Actualización | Comprobación de versión y descarga | Solo UI | Endpoint de upgrade |
 | B6 | Actualización | Borrado de caché | Botón sin efecto | API de almacenamiento de webOS |
-| B7 | Búsqueda | Teclado numérico completo | Alterna etiquetas | Completar mapa de teclas |
+| B7 | Búsqueda | Teclado numérico completo | **Implementado:** alterna teclado alfabético/numérico, incluye 0–9 y retroceso | Probar foco/entrada con Magic Remote |
 | B8 | Búsqueda | Filtros por categoría | **Implementado en búsqueda VOD:** Todo, Películas, Series, Gratis, Infantil y UHD filtran los resultados locales/remotos | Probar navegación y paginación en simulador |
 | B9 | Detalle | Chips de género / director / actores | Enfocables sin destino | `activity_vodcategory.xml`, `activity_actor_details.xml` |
 | B10 | Inicio | PARTIDOS / Match* | Excluido | `activity_match*.xml` |
