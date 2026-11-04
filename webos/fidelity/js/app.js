@@ -3835,6 +3835,48 @@ function portalServiceCall(method, params, done, customTimeout) {
     if (searchHot) { searchHot.classList.remove('is-hidden'); }
   }
 
+  function searchIndexText(item) {
+    if (!item) { return ''; }
+    if (item._searchIndexText !== undefined) { return item._searchIndexText; }
+    var fields = [
+      item.title, item.alias, item.originalTitle, item.original_title,
+      item.name, item.category, item.provider, item.row, item.kind,
+      item.genres, item.genre, item.director, item.actors, item.cast,
+      item.synopsis, item.description, item.tagline, item.country,
+      item.year, item.releaseDate
+    ];
+    var textParts = [];
+    for (var f = 0; f < fields.length; f++) {
+      var value = fields[f];
+      if (value === null || value === undefined) { continue; }
+      if (Object.prototype.toString.call(value) === '[object Array]') {
+        for (var a = 0; a < value.length; a++) {
+          var entry = value[a];
+          textParts.push(typeof entry === 'string' ? entry : (entry && (entry.name || entry.title) || ''));
+        }
+      } else if (typeof value === 'object') {
+        textParts.push(value.name || value.title || '');
+      } else {
+        textParts.push(String(value));
+      }
+    }
+    item._searchIndexText = norm(textParts.join(' '));
+    return item._searchIndexText;
+  }
+
+  function searchMatchRank(item, query, tokens) {
+    var title = norm(item.title || '');
+    var indexed = searchIndexText(item);
+    if (title === query) { return 0; }
+    if (title.indexOf(query) === 0) { return 1; }
+    if (title.indexOf(query) !== -1) { return 2; }
+    if (indexed.indexOf(query) !== -1) { return 3; }
+    for (var t = 0; t < tokens.length; t++) {
+      if (indexed.indexOf(tokens[t]) === -1) { return 99; }
+    }
+    return 4;
+  }
+
   function runSearch() {
     var rawQ = state.searchQuery || '';
     var q = norm(rawQ.trim());
@@ -3842,15 +3884,26 @@ function portalServiceCall(method, params, done, customTimeout) {
       clearSearchState();
       return;
     }
-    /* Instant local matches (0ms response) */
+    /* Instant local search across all useful metadata, including partial
+       substrings and multi-word queries. Normalize each record only once. */
     var localMatches = [];
+    var queryTokens = q.split(/\\s+/);
     for (var i = 0; i < VOD.length; i++) {
-      var tNorm = norm(VOD[i].title || '');
-      var aNorm = VOD[i].alias ? norm(VOD[i].alias) : '';
-      if (tNorm.indexOf(q) !== -1 || (aNorm && aNorm.indexOf(q) !== -1)) {
-        localMatches.push(VOD[i]);
+      var indexedText = searchIndexText(VOD[i]);
+      var matched = indexedText.indexOf(q) !== -1;
+      if (!matched) {
+        matched = true;
+        for (var tokenIndex = 0; tokenIndex < queryTokens.length; tokenIndex++) {
+          if (queryTokens[tokenIndex] && indexedText.indexOf(queryTokens[tokenIndex]) === -1) {
+            matched = false; break;
+          }
+        }
       }
+      if (matched) { localMatches.push(VOD[i]); }
     }
+    localMatches.sort(function (left, right) {
+      return searchMatchRank(left, q, queryTokens) - searchMatchRank(right, q, queryTokens);
+    });
     renderSearchResults(localMatches);
 
     /* Debounced remote portal search (350ms) */
