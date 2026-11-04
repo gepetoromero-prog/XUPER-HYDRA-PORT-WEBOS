@@ -2969,10 +2969,18 @@ function portalServiceCall(method, params, done, customTimeout) {
         var nav = el('div', 'focusable provider-nav-item' + (index === 0 ? ' is-current' : ''), label);
         abs(nav, 192 + index * 172, 174, 158, 48);
         nav._activate = function () {
+          var allNav = page.querySelectorAll('.provider-nav-item');
+          for (var a = 0; a < allNav.length; a++) { allNav[a].classList.remove('is-current'); }
+          nav.classList.add('is-current');
           var target = label === 'PELÍCULAS' ? 'provider-movies' :
             (label === 'SERIES' ? 'provider-series' : (label === 'MI LISTA' ? 'provider-continue' : 'provider-top'));
           var node = page.querySelector('.' + target);
-          if (node && node.scrollIntoView) { node.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+          if (node && node.scrollIntoView) {
+            node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else if (label === 'MI LISTA') {
+            var emptyList = page.querySelector('.provider-continue');
+            if (!emptyList) { page.scrollTop = page.scrollHeight; }
+          }
         };
         page.appendChild(nav);
       })(navItems[n], n);
