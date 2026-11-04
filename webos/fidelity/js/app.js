@@ -900,7 +900,7 @@ function portalServiceCall(method, params, done, customTimeout) {
   /* ---------------------------------------------------------------- state */
   var state = {
     screen: 'welcome',
-    tab: 0,
+    tab: 2,
     channel: 0,
     focus: null,
     detail: null,
@@ -1618,8 +1618,10 @@ function portalServiceCall(method, params, done, customTimeout) {
     if (welcomeTimer) { clearInterval(welcomeTimer); welcomeTimer = null; }
     if (!homeBuilt) { buildHome(); }
     showScreen('home');
-    selectTab(0, false);
-    setFocus(liveFocus);
+    selectTab(state.tab, false);
+    var initialPage = pages[TABS[state.tab].page];
+    var initialFocus = initialPage ? firstIn(initialPage) : null;
+    setFocus(initialFocus || liveFocus);
     /* The first launch shows the full tab labels even though the video holds
        focus; the rail collapses on the first focus change. */
     var rail = $('home-tabs');
