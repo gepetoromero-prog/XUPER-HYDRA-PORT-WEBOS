@@ -39,7 +39,8 @@ jobs:
           set -euo pipefail
           mkdir -p dist
           ares-package webos/fidelity webos/services/com.webosflux.xuptertv.fidelity.service -o dist -e shots -e '*.md'
-          ipk="dist/com.webosflux.xuptertv.fidelity_$(node -p "require('./webos/fidelity/appinfo.json').version")_all.ipk"
+          version=$(node -p "require('./webos/fidelity/appinfo.json').version")
+          ipk="dist/com.webosflux.xuptertv.fidelity_${version}_all.ipk"
           test -f "$ipk"
           python3 tools/fix_ipk_modes.py "$ipk"
           sha256sum "$ipk"
