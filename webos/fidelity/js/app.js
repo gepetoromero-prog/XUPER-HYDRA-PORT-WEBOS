@@ -3303,8 +3303,22 @@ function portalServiceCall(method, params, done, customTimeout) {
     page.appendChild(note);
   }
 
+  function isAdultCatalogItem(item) {
+    if (!item) { return false; }
+    var labels = norm([item.category, item.row, item.provider, item.kind, item.title].join(' '));
+    return /(^|[\\s,_-])(adult|adulto|18\\+|xxx|erotico|porn)([\\s,_-]|$)/.test(labels);
+  }
+
   /* ============================================================ VOD DETAIL */
   function openDetail(item) {
+    if (!item) { return; }
+    if (isAdultCatalogItem(item) && !state.crOn) {
+      state.parentBlockedTitle = item.title || 'Contenido para adultos';
+      openSettings();
+      showSettingsPanel(3, true);
+      return;
+    }
+    state.parentBlockedTitle = '';
     state.detail = item;
     state.detailReturn = { screen: state.screen, focus: state.focus };
     state.detailRange = 0;
@@ -4419,9 +4433,10 @@ function portalServiceCall(method, params, done, customTimeout) {
     }
 
     var isVerify = parentMode === 'verify';
-    p.appendChild(el('div', 'pl-tip', isVerify ?
-      'Introduce tu contraseña de cuatro dígitos para desbloquear los controles.' :
-      'Crea una contraseña nueva de cuatro dígitos.'));
+    p.appendChild(el('div', 'pl-tip', state.parentBlockedTitle ?
+      ('Bloqueado: ' + state.parentBlockedTitle + '. Activa contenido adulto con tu PIN para continuar.') :
+      (isVerify ? 'Introduce tu contraseña de cuatro dígitos para desbloquear los controles.' :
+       'Crea una contraseña nueva de cuatro dígitos.')));
     p.appendChild(el('div', 'pl-label', isVerify ? 'Contraseña:' : 'Nueva contraseña:'));
     var boxes = el('div', 'pl-boxes');
     var boxNodes = [];
