@@ -2619,7 +2619,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     opts = opts || {};
     var t = el('div', 'bento focusable');
     abs(t, x, y, w, h);
-    var art = item ? (item.landscape || item.poster) : '';
+    var art = item ? (item.landscape || item.backdrop || item.poster) : '';
     if (art) {
       var img = el('img', 'bento-img');
       img.setAttribute('data-poster-src', art);
@@ -3073,7 +3073,13 @@ function portalServiceCall(method, params, done, customTimeout) {
       return;
     }
 
+    /* Prefer a title with true landscape/backdrop artwork for the featured
+       banner; stretching a portrait poster into a 1500px hero looks unlike a
+       streaming-service home screen. Keep catalog order as the fallback. */
     var heroItem = items[0];
+    for (var hi = 0; hi < items.length; hi++) {
+      if (items[hi].landscape || items[hi].backdrop) { heroItem = items[hi]; break; }
+    }
     var hero = makeBento(heroItem, 192, 250, 1500, 520, { shade: true, title: true });
     hero.classList.add('provider-hero');
     hero.classList.add('provider-top');
@@ -3104,8 +3110,6 @@ function portalServiceCall(method, params, done, customTimeout) {
     }
     var y = 840;
     if (continueItems.length) {
-      var continueRows = [];
-      for (var h = 0; h < continueItems.length; h++) { continueRows.push(continueItems[h].item); }
       var continueHeading = el('div', 'provider-rail-title provider-continue', 'CONTINUAR VIENDO');
       abs(continueHeading, 192, y, 1500, 42); page.appendChild(continueHeading);
       var continueTrack = el('div', 'provider-rail-track scrollable');
