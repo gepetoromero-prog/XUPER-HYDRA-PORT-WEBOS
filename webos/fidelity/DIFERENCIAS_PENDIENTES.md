@@ -56,7 +56,7 @@ Estados:
 | B6 | Actualización | Borrado de caché | Botón sin efecto | API de almacenamiento de webOS |
 | B7 | Búsqueda | Teclado numérico completo | **Implementado:** alterna teclado alfabético/numérico, incluye 0–9 y retroceso | Probar foco/entrada con Magic Remote |
 | B8 | Búsqueda | Filtros por categoría | **Implementado en búsqueda VOD:** Todo, Películas, Series, Gratis, Infantil y UHD filtran los resultados locales/remotos | Probar navegación y paginación en simulador |
-| B9 | Detalle | Chips de género / director / actores | Enfocables sin destino | `activity_vodcategory.xml`, `activity_actor_details.xml` |
+| B9 | Detalle | Chips de género / director / actores | **Implementado en el port:** abren búsqueda por el valor seleccionado y BACK regresa al detalle con el foco restaurado | Probar foco con Magic Remote; pantalla de categoría original sigue siendo distinta |
 | B10 | Inicio | PARTIDOS / Match* | Excluido | `activity_match*.xml` |
 | B11 | Inicio | `LiveFreeActivity` como pantalla propia | Solo se reconstruyó la rejilla gratis | Identificar el fragmento hijo de `activity_live.xml` |
 | B12 | Navegación | Historial real (back multinivel) | Back simple por pantalla | Modelo de pila equivalente a TheRouter |
