@@ -4136,6 +4136,26 @@ div, section, span { outline: none; }
   background:rgba(255,255,255,.045);
   transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
 }
+
+/* Each service rail owns its horizontal viewport. The focused card can be
+   revealed by the shared D-pad focus engine without clipping the catalog. */
+.provider-experience .provider-rail-track {
+  position:absolute;
+  box-sizing:border-box;
+  width:1500px;
+  height:370px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  white-space:nowrap;
+  scrollbar-width:none;
+  overscroll-behavior-x:contain;
+}
+.provider-experience .provider-rail-track::-webkit-scrollbar { display:none; }
+.provider-experience .provider-rail-track > .provider-rail-card {
+  position:absolute;
+  top:0;
+}
+
 .provider-experience .provider-rail-card.is-focused {
   transform:scale(1.055);
   border-color:#fff;
