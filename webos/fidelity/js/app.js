@@ -2947,6 +2947,28 @@ function portalServiceCall(method, params, done, customTimeout) {
     return out;
   }
 
+  /* Brand hubs are built only from explicit catalogue metadata (row,
+     alias or category). Never infer a studio/franchise from a title string. */
+  function providerBrandCollections(items, provider) {
+    var definitions = {
+      disney: ['PIXAR', 'MARVEL', 'STAR WARS', 'NATIONAL GEOGRAPHIC'],
+      max: ['HBO', 'DC', 'DISCOVERY'],
+      paramount: ['NICKELODEON', 'SHOWTIME', 'MTV'],
+      prime: ['MGM'],
+      apple: ['APPLE ORIGINALS']
+    };
+    var brands = definitions[provider] || [], out = [];
+    for (var b = 0; b < brands.length; b++) {
+      var words = brands[b].split(' '), matched = [];
+      for (var i = 0; i < items.length; i++) {
+        var metadata = norm([items[i].row || '', items[i].alias || '', items[i].category || ''].join(' '));
+        if (providerHasAlias(metadata, brands[b])) { matched.push(items[i]); }
+      }
+      if (matched.length >= 2) { out.push({ label: brands[b], items: matched }); }
+    }
+    return out;
+  }
+
   function providerGenreCollections(items) {
     var groups = [], index = Object.create(null);
     for (var i = 0; i < items.length; i++) {
@@ -3186,6 +3208,11 @@ function portalServiceCall(method, params, done, customTimeout) {
       myListEmpty.style.cssText += ';white-space:normal;line-height:1.4;padding:22px;font-size:21px;';
       page.appendChild(myListEmpty);
       y += 164;
+    }
+    var brandCollections = providerBrandCollections(items, provider);
+    for (var bc = 0; bc < brandCollections.length; bc++) {
+      y = appendProviderRail(page, brandCollections[bc].items,
+        brandCollections[bc].label, y, config.color);
     }
     var genreCollections = providerGenreCollections(items);
     for (var gc = 0; gc < genreCollections.length; gc++) {
