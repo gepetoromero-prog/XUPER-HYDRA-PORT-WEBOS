@@ -59,7 +59,7 @@ Estados:
 | B9 | Detalle | Chips de género / director / actores | **Implementado en el port:** abren búsqueda por el valor seleccionado y BACK regresa al detalle con el foco restaurado | Probar foco con Magic Remote; pantalla de categoría original sigue siendo distinta |
 | B10 | Inicio | PARTIDOS / Match* | Excluido | `activity_match*.xml` |
 | B11 | Inicio | `LiveFreeActivity` como pantalla propia | Solo se reconstruyó la rejilla gratis | Identificar el fragmento hijo de `activity_live.xml` |
-| B12 | Navegación | Historial real (back multinivel) | Back simple por pantalla | Modelo de pila equivalente a TheRouter |
+| B12 | Navegación | Historial real (back multinivel) | **Parcial:** el historial de reproducción se guarda y permite reabrir/resumir; `detailReturn`, `playerReturn`, `searchReturn` y `settingsReturn` conservan retornos anidados y foco | Unificar en una pila de rutas genérica y probar cadenas largas de navegación con Magic Remote |
 
 ---
 
