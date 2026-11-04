@@ -3047,9 +3047,10 @@ function portalServiceCall(method, params, done, customTimeout) {
     abs(brand, 192, 102, 620, 64);
     page.appendChild(brand);
     var navItems = provider === 'netflix' ? ['INICIO', 'SERIES', 'PELÍCULAS', 'MI NETFLIX'] :
+      (provider === 'prime' ? ['INICIO', 'PELÍCULAS', 'SERIES', 'MI MATERIAL'] :
       (provider === 'apple' ? ['INICIO', 'APPLE TV+', 'TIENDA', 'BIBLIOTECA'] :
       (provider === 'hulu' ? ['INICIO', 'TV', 'PELÍCULAS', 'MI MATERIAL'] :
-      ['INICIO', 'PELÍCULAS', 'SERIES', 'MI LISTA']));
+      ['INICIO', 'PELÍCULAS', 'SERIES', 'MI LISTA'])));
     for (var n = 0; n < navItems.length; n++) {
       (function (label, index) {
         var nav = el('div', 'focusable provider-nav-item' + (index === 0 ? ' is-current' : ''), label);
@@ -3060,7 +3061,7 @@ function portalServiceCall(method, params, done, customTimeout) {
           for (var a = 0; a < allNav.length; a++) { allNav[a].classList.remove('is-current'); }
           nav.classList.add('is-current');
           var target = (label === 'PELÍCULAS' || label === 'TIENDA') ? 'provider-movies' :
-            ((label === 'SERIES' || label === 'TV' || label === 'APPLE TV+') ? 'provider-series' :
+            ((label === 'SERIES' || label === 'TV') ? 'provider-series' :
             ((label === 'MI LISTA' || label === 'MI NETFLIX' || label === 'MI MATERIAL' || label === 'BIBLIOTECA') ?
               'provider-my-list' : 'provider-top'));
           var node = page.querySelector('.' + target);
