@@ -2817,13 +2817,13 @@ function portalServiceCall(method, params, done, customTimeout) {
     var paletteIndex = 0;
     var ignored = { movie: true, movies: true, film: true, films: true, pelicula: true,
       peliculas: true, series: true, serie: true, vod: true, tv: true, live: true,
-      premium: true, free: true, gratis: true, featured: true, destacado: true };
+      premium: true, free: true, freetv: true, gratis: true, featured: true, destacado: true };
     for (var i = 0; i < VOD.length; i++) {
       var item = VOD[i];
       var candidates = [item.provider || '', providerLabelFromRow(item.row)];
       for (var c = 0; c < candidates.length; c++) {
         var label = String(candidates[c] || '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
-        if (!label || ignored[norm(label).replace(/[^a-z0-9]+/g, '')]) { continue; }
+        if (!label || /^\\d{4}$/.test(label) || ignored[norm(label).replace(/[^a-z0-9]+/g, '')]) { continue; }
         if (providerConfigForValue(label)) { continue; }
         var words = providerWords(label);
         if (!words.length || words.length > 5) { continue; }
