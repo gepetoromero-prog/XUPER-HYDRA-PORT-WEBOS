@@ -221,7 +221,7 @@
       id: apiText(raw.id || raw.vodId || raw.programId || raw.program_id || raw.tmdb_id, 'api-' + index),
       title: apiText(raw.title || raw.name || raw.programName || raw.programTitle || raw.original_title, 'Sin título'),
       category: norm(apiText(raw.category || raw.section || raw.collection || raw.homeSection, '')),
-      provider: apiText(raw.provider || raw.platform || raw.service || raw.providerName || raw.appName, ''),
+      provider: apiText(raw.provider || raw.providerName || raw.provider_name || raw.platform || raw.platformName || raw.platform_name || raw.service || raw.serviceName || raw.service_name || raw.sourceName || raw.source_name || raw.appName || raw.app_name || raw.brand, ''),
       score: apiText(raw.score || raw.vote_average || raw.rating || raw.movieRate || raw.programScore, '—'),
       year: apiText(raw.year || raw.release_year || raw.programYear || (raw.releaseDate || raw.releaseTime || raw.release_date || '').slice(0, 4), '—'),
       duration: apiText(runtime, '—'),
