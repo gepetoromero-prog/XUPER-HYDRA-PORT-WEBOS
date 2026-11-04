@@ -48,14 +48,14 @@ Estados:
 
 | ID | Área | Qué falta | Estado actual | Cómo cerrarlo |
 | --- | --- | --- | --- | --- |
-| B1 | Control parental | Captura numérica y validación de los 4 dígitos | Cajas dibujadas; `_activate` vacío | Implementar teclado/entrada y reglas del backend |
-| B2 | Control parental | Diálogo de cambio de contraseña | Botón sin destino | `dialog_password_setting.xml` / `dialog_modify_parent_pwd.xml` |
-| B3 | Contenido adulto | Persistencia del interruptor | Cambia en memoria | Guardar estado y aplicar bloqueo |
+| B1 | Control parental | Captura numérica y validación de los 4 dígitos | **Implementado en port local:** teclado D-pad 0–9, validación de 4 dígitos y PIN persistido en este TV | Probar con Magic Remote en simulador/TV; el PIN local no sustituye un control seguro del sistema |
+| B2 | Control parental | Cambio de contraseña | **Implementado:** requiere desbloquear con el PIN actual y permite guardar uno nuevo | Validar flujo completo en simulador |
+| B3 | Contenido adulto | Persistencia y bloqueo | **Parcial:** el interruptor se guarda y bloquea la apertura de títulos identificados como Adult/18+/XXX/erótico; depende de que el catálogo etiquete correctamente el contenido | Ampliar detección a todos los feeds y bloquear también accesos directos/raíces adultas |
 | B4 | Feedback | Centro de ayuda | Enlace sin destino | `fragment_aboutus.xml` / web autorizada |
 | B5 | Actualización | Comprobación de versión y descarga | Solo UI | Endpoint de upgrade |
 | B6 | Actualización | Borrado de caché | Botón sin efecto | API de almacenamiento de webOS |
 | B7 | Búsqueda | Teclado numérico completo | Alterna etiquetas | Completar mapa de teclas |
-| B8 | Búsqueda | Filtros por categoría | Chips sin destino | `activity_filter.xml` |
+| B8 | Búsqueda | Filtros por categoría | **Implementado en búsqueda VOD:** Todo, Películas, Series, Gratis, Infantil y UHD filtran los resultados locales/remotos | Probar navegación y paginación en simulador |
 | B9 | Detalle | Chips de género / director / actores | Enfocables sin destino | `activity_vodcategory.xml`, `activity_actor_details.xml` |
 | B10 | Inicio | PARTIDOS / Match* | Excluido | `activity_match*.xml` |
 | B11 | Inicio | `LiveFreeActivity` como pantalla propia | Solo se reconstruyó la rejilla gratis | Identificar el fragmento hijo de `activity_live.xml` |
