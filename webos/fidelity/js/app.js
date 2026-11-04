@@ -3887,7 +3887,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     /* Instant local search across all useful metadata, including partial
        substrings and multi-word queries. Normalize each record only once. */
     var localMatches = [];
-    var queryTokens = q.split(/\\s+/);
+    var queryTokens = q.split(/\s+/);
     for (var i = 0; i < VOD.length; i++) {
       var indexedText = searchIndexText(VOD[i]);
       var matched = indexedText.indexOf(q) !== -1;
