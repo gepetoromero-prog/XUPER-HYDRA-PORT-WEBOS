@@ -2907,6 +2907,18 @@ function portalServiceCall(method, params, done, customTimeout) {
     return out;
   }
 
+  /* Favorites are stored in the local TV profile.  Filter them against the
+     active provider catalog so "MI LISTA" never leaks titles from another
+     service and survives app restarts without a network account. */
+  function providerFavoriteItems(items) {
+    var out = [];
+    var favorites = state.favs || {};
+    for (var i = 0; i < items.length; i++) {
+      if (favorites[String(items[i].id)]) { out.push(items[i]); }
+    }
+    return out;
+  }
+
   function appendProviderContinueSection(page, records, y) {
     if (!records || !records.length) { return y; }
     var heading = el('div', 'kids-subtitle', 'CONTINUAR VIENDO');
@@ -2950,6 +2962,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     var heading = el('div', 'provider-rail-title', title);
     if (title === 'PELÍCULAS') { heading.classList.add('provider-movies'); }
     if (title === 'SERIES') { heading.classList.add('provider-series'); }
+    if (title === 'MI LISTA') { heading.classList.add('provider-my-list'); }
     abs(heading, 192, y, 1500, 42);
     page.appendChild(heading);
     var limit = Math.min(items.length, 6);
@@ -2999,7 +3012,7 @@ function portalServiceCall(method, params, done, customTimeout) {
           for (var a = 0; a < allNav.length; a++) { allNav[a].classList.remove('is-current'); }
           nav.classList.add('is-current');
           var target = label === 'PELÍCULAS' ? 'provider-movies' :
-            (label === 'SERIES' ? 'provider-series' : (label === 'MI LISTA' ? 'provider-continue' : 'provider-top'));
+            (label === 'SERIES' ? 'provider-series' : (label === 'MI LISTA' ? 'provider-my-list' : 'provider-top'));
           var node = page.querySelector('.' + target);
           if (node && node.scrollIntoView) {
             node.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -3045,6 +3058,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     page.appendChild(info);
 
     var continueItems = providerContinueRecords(items);
+    var favoriteItems = providerFavoriteItems(items);
     var movies = [], series = [];
     for (var m = 0; m < items.length; m++) {
       if (isSeriesItem(items[m])) { series.push(items[m]); } else { movies.push(items[m]); }
@@ -3071,6 +3085,18 @@ function portalServiceCall(method, params, done, customTimeout) {
     }
     y = appendProviderRail(page, movies, 'PELÍCULAS', y, config.color);
     y = appendProviderRail(page, series, 'SERIES', y, config.color);
+    if (favoriteItems.length) {
+      y = appendProviderRail(page, favoriteItems, 'MI LISTA', y, config.color);
+    } else {
+      var myListHeading = el('div', 'provider-rail-title provider-my-list', 'MI LISTA');
+      abs(myListHeading, 192, y, 1500, 42);
+      page.appendChild(myListHeading);
+      var myListEmpty = el('div', 'catalog-empty', 'Todavía no has añadido títulos de ' + config.label + '. Abre la ficha de una película o serie y selecciónala para guardarla aquí.');
+      abs(myListEmpty, 192, y + 54, 1450, 92);
+      myListEmpty.style.cssText += ';white-space:normal;line-height:1.4;padding:22px;font-size:21px;';
+      page.appendChild(myListEmpty);
+      y += 164;
+    }
     appendProviderRail(page, items, 'TODO EL CATÁLOGO', y, config.color);
     page.scrollTop = 0;
     schedulePosterMemoryPass();
