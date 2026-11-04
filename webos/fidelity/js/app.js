@@ -1088,6 +1088,13 @@ function portalServiceCall(method, params, done, customTimeout) {
       var pr = providerPage.getBoundingClientRect();
       var topLimit = pr.top + 18;
       var bottomLimit = pr.bottom - 18;
+      if (providerPage.scrollWidth > providerPage.clientWidth + 1) {
+        if (nr.left < pr.left + 18) {
+          providerPage.scrollLeft -= (pr.left + 18 - nr.left) + 14;
+        } else if (nr.right > pr.right - 18) {
+          providerPage.scrollLeft += (nr.right - (pr.right - 18)) + 14;
+        }
+      }
       if (nr.top < topLimit) {
         providerPage.scrollTop -= (topLimit - nr.top) + 14;
       } else if (nr.bottom > bottomLimit) {
@@ -1152,6 +1159,10 @@ function portalServiceCall(method, params, done, customTimeout) {
     for (var i = 0; i < list.length; i++) {
       var c = list[i];
       if (c === state.focus) { continue; }
+      /* Horizontal D-pad movement stays within the active provider rail. */
+      var activeProviderRow = state.focus.getAttribute && state.focus.getAttribute('data-provider-row');
+      if ((dir === 'left' || dir === 'right') && activeProviderRow &&
+          (!c.getAttribute || c.getAttribute('data-provider-row') !== activeProviderRow)) { continue; }
       /* Don't let sidebar tabs intercept left navigation while inside page content */
       if (inPage && closest(c, '.home-tabs')) { continue; }
       /* Don't let page content intercept navigation while inside sidebar tabs */
@@ -2945,6 +2956,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     for (var i = 0; i < limit; i++) {
       var card = makePoster(items[i], 192 + i * 276, y + 54, 250, 360, { gold: true });
       card.classList.add('provider-rail-card');
+      card.setAttribute('data-provider-row', String(y));
       card.style.setProperty('--provider-accent', accent || '#e50914');
       page.appendChild(card);
     }
