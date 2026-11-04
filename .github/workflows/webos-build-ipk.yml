@@ -1,0 +1,53 @@
+name: Build LG webOS IPK
+
+on:
+  push:
+    branches:
+      - armoniztech/hydra-ui
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install webOS CLI
+        run: npm install --global @webos-tools/cli
+      - name: Restore FFmpeg
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive=tools/vendor/ffmpeg-7.0.2-armhf-static.tar.xz
+          echo "7D41F558CB1F3395B313F8CEABED78B3731C79A0962ABF405EBB5CD393E93991  $archive" | sha256sum -c -
+          svc=webos/services/com.webosflux.xuptertv.fidelity.service
+          tar -xJf "$archive" -C /tmp ffmpeg-7.0.2-armhf-static/ffmpeg
+          cp /tmp/ffmpeg-7.0.2-armhf-static/ffmpeg "$svc/ffmpeg"
+          chmod 755 "$svc/ffmpeg"
+          echo "0AFBA4A11110E6E402053E0FC14C33A7EB207D7A588688AE87DBA471A0F06C71  $svc/ffmpeg" | sha256sum -c -
+      - name: Build IPK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          ares-package webos/fidelity webos/services/com.webosflux.xuptertv.fidelity.service -o dist -e shots -e '*.md'
+          ipk="dist/com.webosflux.xuptertv.fidelity_$(node -p "require('./webos/fidelity/appinfo.json').version")_all.ipk"
+          test -f "$ipk"
+          python3 tools/fix_ipk_modes.py "$ipk"
+          sha256sum "$ipk"
+          ls -lh "$ipk"
+      - name: Upload installable IPK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Xuper-Hydra-webOS-IPK
+          path: dist/com.webosflux.xuptertv.fidelity_*_all.ipk
+          if-no-files-found: error
+          retention-days: 14
