@@ -4614,9 +4614,12 @@ function portalServiceCall(method, params, done, customTimeout) {
       id: key,
       title: item.title || item.name || 'Contenido',
       poster: item.poster || item.cover || '',
+      provider: item.provider || item.platform || item.service || '',
       series: !!isSeriesItem(item),
       episodeId: episode && episode.id ? String(episode.id) : '',
       episodeNumber: episode ? (episode.number || episode.seriesNumber || '') : '',
+      episodeTitle: episode ? (episode.title || episode.name || '') : '',
+      seasonIndex: Number(state.playerSeasonIndex) || 0,
       position: Math.floor(current),
       duration: Math.floor(duration || item.duration || 0),
       updatedAt: now
@@ -4624,7 +4627,9 @@ function portalServiceCall(method, params, done, customTimeout) {
     var next = [record];
     var old = localProfile.history || [];
     for (var i = 0; i < old.length && next.length < 30; i++) {
-      if (String(old[i].id) !== key) { next.push(old[i]); }
+      var sameTitle = String(old[i].id) === key;
+      var sameProvider = norm(old[i].provider || '') === norm(record.provider || '');
+      if (!sameTitle || !sameProvider) { next.push(old[i]); }
     }
     localProfile.history = next;
     safeLocalWrite(LOCAL_PROFILE_KEY, localProfile);
@@ -6670,6 +6675,19 @@ function portalServiceCall(method, params, done, customTimeout) {
         }
       }
       if (state.playerMode === 'vod') {
+        var resumeRecord = pendingHistoryRecord;
+        if (resumeRecord && state.playerItem && String(resumeRecord.id) === String(state.playerItem.id) &&
+            !resumeRecord._resumeApplied && Number(resumeRecord.position) >= 3) {
+          resumeRecord._resumeApplied = true;
+          var resumeAt = Math.max(0, Number(resumeRecord.position) || 0);
+          var resumeDuration = Number(resumeRecord.duration) || playerVideo.duration || 0;
+          if (!resumeDuration || resumeAt < resumeDuration - 20) {
+            /* Reuse the existing seek pipeline: it also handles the FFmpeg
+               relay path, where changing currentTime alone is insufficient. */
+            playerSeek(resumeAt - (relayBaseUrl ? relayStartOffset + (playerVideo.currentTime || 0) : (playerVideo.currentTime || 0)));
+          }
+          pendingHistoryRecord = null;
+        }
         var cur = relayBaseUrl ? relayStartOffset : (playerVideo.currentTime || 0);
         var vidDur = (playerVideo && isFinite(playerVideo.duration) && playerVideo.duration > 0) ? playerVideo.duration : 0;
         var epDur = (state.playerEpisode && state.playerEpisode.duration) ? durationToSeconds(state.playerEpisode.duration) : 0;
