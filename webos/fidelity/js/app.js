@@ -2916,6 +2916,25 @@ function portalServiceCall(method, params, done, customTimeout) {
     return y + 50 + Math.ceil(Math.min(items.length, 60) / 6) * 390 + 56;
   }
 
+  function providerThemeClass(provider) {
+    return 'provider-theme-' + String(provider || 'generic').replace(/[^a-z0-9-]/gi, '');
+  }
+
+  function appendProviderRail(page, items, title, y, accent) {
+    if (!items || !items.length) { return y; }
+    var heading = el('div', 'provider-rail-title', title);
+    abs(heading, 192, y, 1500, 42);
+    page.appendChild(heading);
+    var limit = Math.min(items.length, 6);
+    for (var i = 0; i < limit; i++) {
+      var card = makePoster(items[i], 192 + i * 276, y + 54, 250, 360, { gold: true });
+      card.classList.add('provider-rail-card');
+      card.style.setProperty('--provider-accent', accent || '#e50914');
+      page.appendChild(card);
+    }
+    return y + 454;
+  }
+
   function buildProviderExperience(page, provider) {
     refreshExploreProviders();
     var config = null;
@@ -2924,46 +2943,99 @@ function portalServiceCall(method, params, done, customTimeout) {
     }
     if (!config) { buildExplorePage(page); return; }
     clear(page);
-    var backBtn = el('div', 'focusable provider-back', '‹  TODAS LAS PLATAFORMAS');
-    abs(backBtn, 192, 34, 390, 58);
-    backBtn.style.cssText += ';display:flex;align-items:center;padding:0 22px;border-radius:12px;background:#242424;color:#fff;font-size:22px;font-weight:700;';
-    backBtn._activate = function () { buildExplorePage(page); var first = firstIn(page); if (first) { setFocus(first); } };
-    page.appendChild(backBtn);
-
-    var heading = el('div', 'provider-heading', config.label);
-    abs(heading, 192, 112, 1200, 76);
-    heading.style.cssText += ';font-size:54px;font-weight:800;letter-spacing:1px;color:#fff;';
-    page.appendChild(heading);
-    var sub = el('div', 'provider-tagline', config.tagline);
-    abs(sub, 192, 190, 1200, 42);
-    sub.style.cssText += ';font-size:24px;color:#c9c9c9;';
-    page.appendChild(sub);
+    page.className = page.className.replace(/provider-theme-[^ ]+/g, '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+    page.classList.add('provider-experience', providerThemeClass(provider));
+    page.style.position = 'relative';
+    page.style.minHeight = '1100px';
 
     var items = providerCatalogItems(provider);
-    if (items.length) {
-      var hero = makeBento(items[0], 192, 260, 1249, 520, { shade: true, title: true });
-      hero.classList.add('provider-hero');
-      hero.style.borderTop = '5px solid ' + config.color;
-      page.appendChild(hero);
+    var backBtn = el('div', 'focusable provider-back', '‹  PLATAFORMAS');
+    abs(backBtn, 192, 28, 300, 54);
+    backBtn._activate = function () {
+      buildExplorePage(page);
+      page.classList.remove('provider-experience');
+      var first = firstIn(page); if (first) { setFocus(first); }
+    };
+    page.appendChild(backBtn);
 
-      var y = 820;
-      y = appendProviderContinueSection(page, providerContinueRecords(items), y);
-      var movies = [];
-      var series = [];
-      for (var m = 0; m < items.length; m++) {
-        if (isSeriesItem(items[m])) { series.push(items[m]); }
-        else { movies.push(items[m]); }
-      }
-      y = appendProviderSection(page, movies, y, 'PELÍCULAS');
-      y = appendProviderSection(page, series, y, 'SERIES');
-      appendProviderSection(page, items, y, 'TODO EL CATÁLOGO');
-    } else {
+    var brand = el('div', 'provider-brand', config.label);
+    abs(brand, 192, 102, 620, 64);
+    page.appendChild(brand);
+    var navItems = ['INICIO', 'PELÍCULAS', 'SERIES', 'MI LISTA'];
+    for (var n = 0; n < navItems.length; n++) {
+      (function (label, index) {
+        var nav = el('div', 'focusable provider-nav-item' + (index === 0 ? ' is-current' : ''), label);
+        abs(nav, 192 + index * 172, 174, 158, 48);
+        nav._activate = function () {
+          var target = label === 'PELÍCULAS' ? 'provider-movies' :
+            (label === 'SERIES' ? 'provider-series' : (label === 'MI LISTA' ? 'provider-continue' : 'provider-top'));
+          var node = page.querySelector('.' + target);
+          if (node && node.scrollIntoView) { node.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        };
+        page.appendChild(nav);
+      })(navItems[n], n);
+    }
+
+    if (!items.length) {
       var empty = el('div', 'catalog-empty',
-        'Este servicio todavía no tiene títulos identificados en el catálogo conectado. Xuper no asignará películas o series por suposiciones.');
-      abs(empty, 192, 310, 1450, 150);
+        'Este servicio todavía no tiene títulos identificados en los metadatos del catálogo conectado. Xuper no asignará títulos por suposiciones.');
+      abs(empty, 192, 270, 1450, 150);
       empty.style.cssText += ';white-space:normal;line-height:1.5;padding:28px;font-size:24px;border-left:6px solid ' + config.color + ';';
       page.appendChild(empty);
+      return;
     }
+
+    var heroItem = items[0];
+    var hero = makeBento(heroItem, 192, 250, 1500, 520, { shade: true, title: true });
+    hero.classList.add('provider-hero');
+    hero.classList.add('provider-top');
+    hero.style.borderTop = '4px solid ' + config.color;
+    page.appendChild(hero);
+
+    var heroMeta = el('div', 'provider-hero-meta',
+      (heroItem.year && heroItem.year !== '—' ? heroItem.year + '  ·  ' : '') +
+      (heroItem.score && heroItem.score !== '—' ? '★ ' + heroItem.score + '  ·  ' : '') +
+      (isSeriesItem(heroItem) ? 'SERIE' : 'PELÍCULA'));
+    abs(heroMeta, 224, 682, 900, 38);
+    page.appendChild(heroMeta);
+
+    var play = el('div', 'focusable provider-play', '▶  REPRODUCIR');
+    abs(play, 224, 730, 250, 62);
+    play._activate = function () { openDetail(heroItem); };
+    page.appendChild(play);
+    var info = el('div', 'focusable provider-more', 'ⓘ  MÁS INFORMACIÓN');
+    abs(info, 490, 730, 300, 62);
+    info._activate = function () { openDetail(heroItem); };
+    page.appendChild(info);
+
+    var continueItems = providerContinueRecords(items);
+    var movies = [], series = [];
+    for (var m = 0; m < items.length; m++) {
+      if (isSeriesItem(items[m])) { series.push(items[m]); } else { movies.push(items[m]); }
+    }
+    var y = 840;
+    if (continueItems.length) {
+      var continueRows = [];
+      for (var h = 0; h < continueItems.length; h++) { continueRows.push(continueItems[h].item); }
+      var continueHeading = el('div', 'provider-rail-title provider-continue', 'CONTINUAR VIENDO');
+      abs(continueHeading, 192, y, 1500, 42); page.appendChild(continueHeading);
+      for (var q = 0; q < Math.min(continueItems.length, 6); q++) {
+        (function (entry, index) {
+          var card = makePoster(entry.item, 192 + index * 276, y + 54, 250, 360, { gold: true });
+          card._activate = function () { openHistoryRecord(entry.record); };
+          var track = el('div', 'provider-progress-track');
+          track.style.cssText = 'position:absolute;left:8px;bottom:8px;width:234px;height:6px;background:rgba(255,255,255,.4);border-radius:4px;overflow:hidden;z-index:5;';
+          var fill = el('div', 'provider-progress-fill');
+          var duration = Number(entry.record.duration) || 0, position = Number(entry.record.position) || 0;
+          fill.style.cssText = 'height:100%;width:' + (duration > 0 ? Math.max(0, Math.min(100, position * 100 / duration)) : 0) + '%;background:' + config.color + ';';
+          track.appendChild(fill); card.appendChild(track); page.appendChild(card);
+        })(continueItems[q], q);
+      }
+      y += 454;
+    }
+    y = appendProviderRail(page, movies, 'PELÍCULAS', y, config.color);
+    y = appendProviderRail(page, series, 'SERIES', y, config.color);
+    appendProviderRail(page, items, 'TODO EL CATÁLOGO', y, config.color);
     page.scrollTop = 0;
     schedulePosterMemoryPass();
   }
