@@ -1,0 +1,51 @@
+name: webOS static validation
+
+on:
+  push:
+    branches:
+      - armoniztech/hydra-ui
+  pull_request:
+    branches:
+      - armoniztech/hydra-ui
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            echo "Checking $file"
+            node --check "$file"
+          done < <(find webos/fidelity/js webos/services -type f \\( -name '*.js' -o -name '*.mjs' \\) -print0)
+      - name: Check package versions and protected playback contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('fs');
+          const app = JSON.parse(fs.readFileSync('webos/fidelity/appinfo.json', 'utf8'));
+          const service = JSON.parse(fs.readFileSync('webos/services/com.webosflux.xuptertv.fidelity.service/package.json', 'utf8'));
+          if (app.version !== service.version) {
+            throw new Error('App/service version mismatch: ' + app.version + ' / ' + service.version);
+          }
+          console.log('Version OK:', app.version);
+          NODE
+          grep -Fq "params.forceRelay ? 'resolveSmooth' : 'resolve'" webos/fidelity/js/app.js
+          grep -Fq "portalServiceCall(resolveMethod" webos/fidelity/js/app.js
+          grep -Fq "resolveSmooth" webos/services/com.webosflux.xuptertv.fidelity.service/index.js
+          grep -Fq "relay.register" webos/services/com.webosflux.xuptertv.fidelity.service/index.js
+          grep -Fq "resolveHostIp" webos/services/com.webosflux.xuptertv.fidelity.service/proxy.js
+          grep -Fq "cachefly.net" webos/services/com.webosflux.xuptertv.fidelity.service/proxy.js
+          grep -Fq "Promise.all" webos/services/com.webosflux.xuptertv.fidelity.service/dnsx.js
+          test -x webos/services/com.webosflux.xuptertv.fidelity.service/ffmpeg
+          echo "Playback/DoH contract and FFmpeg executable bit OK"
