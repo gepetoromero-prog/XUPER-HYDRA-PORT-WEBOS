@@ -2757,47 +2757,101 @@ function portalServiceCall(method, params, done, customTimeout) {
     page.appendChild(row);
   }
 
-  /* EXPLORAR: agrupa únicamente títulos cuyo proveedor viene declarado
-     por el catálogo. No asigna plataformas por suposiciones ni duplica títulos. */
+  /* Experiencias de plataforma dentro de Xuper. Los títulos solo se
+     muestran si el portal declara el proveedor en sus metadatos. */
+  var EXPLORE_PROVIDERS = [
+    { id: 'netflix', label: 'NETFLIX', aliases: ['netflix'], color: '#b20710', tagline: 'Series, películas y originales' },
+    { id: 'prime', label: 'PRIME VIDEO', aliases: ['prime', 'prime video', 'amazon prime'], color: '#087cba', tagline: 'Películas y series' },
+    { id: 'disney', label: 'DISNEY+', aliases: ['disney', 'disney plus', 'disney+'], color: '#172b63', tagline: 'Historias para todos' },
+    { id: 'max', label: 'MAX', aliases: ['max', 'hbo max'], color: '#44218c', tagline: 'Series y cine' }
+  ];
+
   function providerCatalogItems(provider) {
+    var config = null;
+    for (var p = 0; p < EXPLORE_PROVIDERS.length; p++) {
+      if (EXPLORE_PROVIDERS[p].id === provider) { config = EXPLORE_PROVIDERS[p]; break; }
+    }
+    if (!config) { return []; }
     var out = [];
     for (var i = 0; i < VOD.length; i++) {
-      var value = norm(VOD[i].provider || '');
-      if (value && value.indexOf(provider) !== -1) { out.push(VOD[i]); }
+      var raw = norm([VOD[i].provider || '', VOD[i].platform || '', VOD[i].service || '',
+        VOD[i].providerName || '', VOD[i].appName || ''].join(' '));
+      for (var a = 0; a < config.aliases.length; a++) {
+        if (raw.indexOf(norm(config.aliases[a])) !== -1) { out.push(VOD[i]); break; }
+      }
     }
     return out;
   }
 
+  function buildProviderExperience(page, provider) {
+    var config = null;
+    for (var i = 0; i < EXPLORE_PROVIDERS.length; i++) {
+      if (EXPLORE_PROVIDERS[i].id === provider) { config = EXPLORE_PROVIDERS[i]; break; }
+    }
+    if (!config) { buildExplorePage(page); return; }
+    clear(page);
+    var backBtn = el('div', 'focusable provider-back', '‹  TODAS LAS PLATAFORMAS');
+    abs(backBtn, 192, 34, 390, 58);
+    backBtn.style.cssText += ';display:flex;align-items:center;padding:0 22px;border-radius:12px;background:#242424;color:#fff;font-size:22px;font-weight:700;';
+    backBtn._activate = function () { buildExplorePage(page); var first = firstIn(page); if (first) { setFocus(first); } };
+    page.appendChild(backBtn);
+
+    var heading = el('div', 'provider-heading', config.label);
+    abs(heading, 192, 112, 1200, 76);
+    heading.style.cssText += ';font-size:54px;font-weight:800;letter-spacing:1px;color:#fff;';
+    page.appendChild(heading);
+    var sub = el('div', 'provider-tagline', config.tagline);
+    abs(sub, 192, 190, 1200, 42);
+    sub.style.cssText += ';font-size:24px;color:#c9c9c9;';
+    page.appendChild(sub);
+
+    var items = providerCatalogItems(provider);
+    if (items.length) {
+      var hero = makeBento(items[0], 192, 260, 1249, 520, { shade: true, title: true });
+      hero.classList.add('provider-hero');
+      hero.style.borderTop = '5px solid ' + config.color;
+      page.appendChild(hero);
+      if (items.length > 1) { appendCatalogGrid(page, items.slice(1), 820, 'Explorar catálogo'); }
+    } else {
+      var empty = el('div', 'catalog-empty',
+        'Este servicio todavía no tiene títulos identificados en el catálogo conectado. Xuper no asignará películas o series por suposiciones.');
+      abs(empty, 192, 310, 1450, 150);
+      empty.style.cssText += ';white-space:normal;line-height:1.5;padding:28px;font-size:24px;border-left:6px solid ' + config.color + ';';
+      page.appendChild(empty);
+    }
+    page.scrollTop = 0;
+    schedulePosterMemoryPass();
+  }
+
   function buildExplorePage(page) {
-    var source = VOD.length ? VOD : [];
-    if (source.length) {
-      page.appendChild(makeBento(source[0], 192, 38.5, 1249, 703, { shade: true }));
-      for (var i = 0; i < 3; i++) {
-        page.appendChild(makeBento(source[(i + 1) % source.length], 1446, 38.5 + i * 231,
-                                   413, 226, { badge: '' }));
-      }
+    clear(page);
+    var title = el('div', 'provider-hub-title', 'TUS PLATAFORMAS');
+    abs(title, 192, 52, 1200, 72);
+    title.style.cssText += ';font-size:48px;font-weight:800;color:#fff;';
+    page.appendChild(title);
+    var subtitle = el('div', 'provider-hub-subtitle', 'Elige una experiencia para explorar su catálogo');
+    abs(subtitle, 192, 124, 1400, 42);
+    subtitle.style.cssText += ';font-size:24px;color:#bdbdbd;';
+    page.appendChild(subtitle);
+
+    for (var i = 0; i < EXPLORE_PROVIDERS.length; i++) {
+      (function (config, index) {
+        var tile = el('div', 'focusable provider-hub-tile');
+        abs(tile, 192 + index * 318, 230, 286, 190);
+        tile.style.cssText += ';display:flex;flex-direction:column;justify-content:center;align-items:center;box-sizing:border-box;border-radius:18px;background:' +
+          config.color + ';border:2px solid rgba(255,255,255,.16);color:#fff;';
+        tile.appendChild(el('div', 'provider-hub-name', config.label));
+        var count = providerCatalogItems(config.id).length;
+        tile.appendChild(el('div', 'provider-hub-count', count ? (count + ' títulos') : 'Catálogo por conectar'));
+        tile._activate = function () { buildProviderExperience(page, config.id); var first = firstIn(page); if (first) { setFocus(first); } };
+        page.appendChild(tile);
+      })(EXPLORE_PROVIDERS[i], i);
     }
-    var providers = [
-      { id: 'netflix', label: 'NETFLIX' },
-      { id: 'prime', label: 'PRIME VIDEO' },
-      { id: 'disney', label: 'DISNEY+' },
-      { id: 'max', label: 'MAX' }
-    ];
-    var y = 820;
-    var found = 0;
-    for (var p = 0; p < providers.length; p++) {
-      var items = providerCatalogItems(providers[p].id);
-      if (!items.length) { continue; }
-      appendCatalogGrid(page, items, y, providers[p].label);
-      y += 50 + Math.ceil(Math.min(items.length, 60) / 6) * 390 + 34;
-      found++;
-    }
-    if (!found) {
-      var note = el('div', 'catalog-empty',
-        'Los catálogos por plataforma aparecerán aquí cuando el proveedor esté identificado en los datos del servicio.');
-      abs(note, 192, 830, 1450, 90);
-      page.appendChild(note);
-    }
+    var note = el('div', 'catalog-empty',
+      'Las plataformas usan los títulos y enlaces autorizados que entrega tu servicio. La reproducción, el progreso y el control remoto permanecen dentro de Xuper.');
+    abs(note, 192, 490, 1320, 110);
+    note.style.cssText += ';white-space:normal;line-height:1.5;padding:24px;font-size:22px;';
+    page.appendChild(note);
   }
 
   /* ============================================================ VOD DETAIL */
