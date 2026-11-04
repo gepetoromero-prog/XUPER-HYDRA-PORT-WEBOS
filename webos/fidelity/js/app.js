@@ -2965,14 +2965,24 @@ function portalServiceCall(method, params, done, customTimeout) {
     if (title === 'MI LISTA') { heading.classList.add('provider-my-list'); }
     abs(heading, 192, y, 1500, 42);
     page.appendChild(heading);
-    var limit = Math.min(items.length, 6);
+
+    /* Keep every catalog item reachable. The previous six-card cap silently
+       hid the rest of each service's catalog. A dedicated horizontal viewport
+       lets the Magic Remote reveal/focus cards without widening the whole page. */
+    var track = el('div', 'provider-rail-track scrollable');
+    abs(track, 192, y + 54, 1500, 370);
+    track.style.overflowX = 'auto';
+    track.style.overflowY = 'hidden';
+    var limit = Math.min(items.length, 60);
+    track.style.width = '1500px';
     for (var i = 0; i < limit; i++) {
-      var card = makePoster(items[i], 192 + i * 276, y + 54, 250, 360, { gold: true });
+      var card = makePoster(items[i], i * 276, 0, 250, 360, { gold: true });
       card.classList.add('provider-rail-card');
       card.setAttribute('data-provider-row', String(y));
       card.style.setProperty('--provider-accent', accent || '#e50914');
-      page.appendChild(card);
+      track.appendChild(card);
     }
+    page.appendChild(track);
     return y + 454;
   }
 
@@ -3069,18 +3079,24 @@ function portalServiceCall(method, params, done, customTimeout) {
       for (var h = 0; h < continueItems.length; h++) { continueRows.push(continueItems[h].item); }
       var continueHeading = el('div', 'provider-rail-title provider-continue', 'CONTINUAR VIENDO');
       abs(continueHeading, 192, y, 1500, 42); page.appendChild(continueHeading);
-      for (var q = 0; q < Math.min(continueItems.length, 6); q++) {
+      var continueTrack = el('div', 'provider-rail-track scrollable');
+      abs(continueTrack, 192, y + 54, 1500, 370);
+      continueTrack.style.overflowX = 'auto';
+      continueTrack.style.overflowY = 'hidden';
+      for (var q = 0; q < Math.min(continueItems.length, 30); q++) {
         (function (entry, index) {
-          var card = makePoster(entry.item, 192 + index * 276, y + 54, 250, 360, { gold: true });
+          var card = makePoster(entry.item, index * 276, 0, 250, 360, { gold: true });
+          card.classList.add('provider-rail-card');
           card._activate = function () { openHistoryRecord(entry.record); };
-          var track = el('div', 'provider-progress-track');
-          track.style.cssText = 'position:absolute;left:8px;bottom:8px;width:234px;height:6px;background:rgba(255,255,255,.4);border-radius:4px;overflow:hidden;z-index:5;';
+          var progressTrack = el('div', 'provider-progress-track');
+          progressTrack.style.cssText = 'position:absolute;left:8px;bottom:8px;width:234px;height:6px;background:rgba(255,255,255,.4);border-radius:4px;overflow:hidden;z-index:5;';
           var fill = el('div', 'provider-progress-fill');
           var duration = Number(entry.record.duration) || 0, position = Number(entry.record.position) || 0;
           fill.style.cssText = 'height:100%;width:' + (duration > 0 ? Math.max(0, Math.min(100, position * 100 / duration)) : 0) + '%;background:' + config.color + ';';
-          track.appendChild(fill); card.appendChild(track); page.appendChild(card);
+          progressTrack.appendChild(fill); card.appendChild(progressTrack); continueTrack.appendChild(card);
         })(continueItems[q], q);
       }
+      page.appendChild(continueTrack);
       y += 454;
     }
     y = appendProviderRail(page, movies, 'PELÍCULAS', y, config.color);
