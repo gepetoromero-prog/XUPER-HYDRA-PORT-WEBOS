@@ -5101,7 +5101,7 @@ function portalServiceCall(method, params, done, customTimeout) {
   function updateSubtitleDisplay(currentSec) {
     if (!playerSubtitles) return;
     if (!vodSubActive || !activeSubtitleCues || !activeSubtitleCues.length) {
-      if (playerSubtitles.innerHTML !== '') playerSubtitles.innerHTML = '';
+      if (playerSubtitles.firstChild) { clear(playerSubtitles); }
       return;
     }
     var cue = null;
@@ -5112,14 +5112,19 @@ function portalServiceCall(method, params, done, customTimeout) {
       }
     }
     if (cue) {
-      var html = '<span class="player-subtitles-text">' + cue.text + '</span>';
-      if (playerSubtitles.innerHTML !== html) {
-        playerSubtitles.innerHTML = html;
+      /* Subtitle files are external input. Render them as text, never HTML:
+         a cue containing markup must not be able to inject DOM into the app. */
+      var cueText = String(cue.text === undefined || cue.text === null ? '' : cue.text);
+      var currentNode = playerSubtitles.firstChild;
+      if (!currentNode || currentNode.className !== 'player-subtitles-text' ||
+          currentNode.textContent !== cueText || playerSubtitles.childNodes.length !== 1) {
+        var subtitleNode = el('span', 'player-subtitles-text', cueText);
+        subtitleNode.style.whiteSpace = 'pre-line';
+        clear(playerSubtitles);
+        playerSubtitles.appendChild(subtitleNode);
       }
     } else {
-      if (playerSubtitles.innerHTML !== '') {
-        playerSubtitles.innerHTML = '';
-      }
+      if (playerSubtitles.firstChild) { clear(playerSubtitles); }
     }
   }
 
