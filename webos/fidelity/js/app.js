@@ -2772,7 +2772,7 @@ function portalServiceCall(method, params, done, customTimeout) {
   var EXPLORE_PROVIDER_COLORS = ['#126b58', '#8a4b12', '#315b91', '#704477', '#52602b', '#8b354d'];
 
   function providerWords(value) {
-    return norm(value || '').replace(/[^a-z0-9]+/g, ' ').replace(/^\\s+|\\s+$/g, '').split(/\\s+/);
+    return norm(value || '').replace(/[^a-z0-9]+/g, ' ').replace(/^\s+|\s+$/g, '').split(/\s+/);
   }
 
   function providerHasAlias(value, alias) {
@@ -2800,11 +2800,11 @@ function portalServiceCall(method, params, done, customTimeout) {
   }
 
   function providerLabelFromRow(value) {
-    var label = String(value || '').replace(/[_]+/g, ' ').replace(/\\s+/g, ' ').replace(/^\\s+|\\s+$/g, '');
+    var label = String(value || '').replace(/[_]+/g, ' ').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
     if (!label) { return ''; }
-    var suffix = /\\s+(?:originals?|movies?|films?|pel[ií]culas?|series|s[eé]ries|tv\\s*shows?|shows?|temporadas?)$/i;
+    var suffix = /\s+(?:originals?|movies?|films?|pel[ií]culas?|series|s[eé]ries|tv\s*shows?|shows?|temporadas?)$/i;
     if (!suffix.test(label)) { return ''; }
-    label = label.replace(suffix, '').replace(/[\\s:|_-]+$/g, '');
+    label = label.replace(suffix, '').replace(/[\s:|_-]+$/g, '');
     return label.length >= 2 ? label : '';
   }
 
@@ -2822,7 +2822,7 @@ function portalServiceCall(method, params, done, customTimeout) {
       var item = VOD[i];
       var candidates = [item.provider || '', providerLabelFromRow(item.row)];
       for (var c = 0; c < candidates.length; c++) {
-        var label = String(candidates[c] || '').replace(/\\s+/g, ' ').replace(/^\\s+|\\s+$/g, '');
+        var label = String(candidates[c] || '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
         if (!label || ignored[norm(label).replace(/[^a-z0-9]+/g, '')]) { continue; }
         if (providerConfigForValue(label)) { continue; }
         var words = providerWords(label);
