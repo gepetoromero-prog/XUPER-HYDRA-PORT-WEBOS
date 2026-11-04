@@ -2964,7 +2964,7 @@ function portalServiceCall(method, params, done, customTimeout) {
         var metadata = norm([items[i].row || '', items[i].alias || '', items[i].category || ''].join(' '));
         if (providerHasAlias(metadata, brands[b])) { matched.push(items[i]); }
       }
-      if (matched.length >= 2) { out.push({ label: brands[b], items: matched }); }
+      if (matched.length >= 1) { out.push({ label: brands[b], items: matched }); }
     }
     return out;
   }
