@@ -3041,7 +3041,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     var heading = el('div', 'provider-rail-title', title);
     if (title === 'PELÍCULAS') { heading.classList.add('provider-movies'); }
     if (title === 'SERIES') { heading.classList.add('provider-series'); }
-    if (title === 'MI LISTA') { heading.classList.add('provider-my-list'); }
+    if (title === 'MI LISTA' || title === 'MI MATERIAL' || title === 'BIBLIOTECA' || title === 'MI NETFLIX') { heading.classList.add('provider-my-list'); }
     abs(heading, 192, y, 1500, 42);
     page.appendChild(heading);
 
@@ -3079,7 +3079,9 @@ function portalServiceCall(method, params, done, customTimeout) {
        and Hulu use a left-side navigation on connected-TV interfaces, while
        Netflix's current redesign keeps its shortcuts across the top. */
     var sideNav = provider === 'disney' || provider === 'max' || provider === 'apple' || provider === 'hulu';
+    var primeDualNav = provider === 'prime';
     if (sideNav) { page.classList.add('provider-nav-left'); }
+    if (primeDualNav) { page.classList.add('provider-nav-prime-dual'); }
     page.setAttribute('data-provider-id', provider);
     page.style.position = 'relative';
     page.style.minHeight = '1100px';
@@ -3102,6 +3104,27 @@ function portalServiceCall(method, params, done, customTimeout) {
       (provider === 'apple' ? ['INICIO', 'APPLE TV+', 'TIENDA', 'BIBLIOTECA'] :
       (provider === 'hulu' ? ['INICIO', 'TV', 'PELÍCULAS', 'MI MATERIAL'] :
       ['INICIO', 'PELÍCULAS', 'SERIES', 'MI LISTA'])));
+    if (primeDualNav) {
+      var primeUtility = [
+        { label: 'MI MATERIAL', target: 'provider-my-list' },
+        { label: 'INICIO', target: 'provider-top' }
+      ];
+      for (var pu = 0; pu < primeUtility.length; pu++) {
+        (function (entry, index) {
+          var utility = el('div', 'focusable provider-prime-utility' + (index === 0 ? ' is-current' : ''), entry.label);
+          abs(utility, 28, 250 + index * 72, 140, 54);
+          utility._activate = function () {
+            var all = page.querySelectorAll('.provider-prime-utility');
+            for (var x = 0; x < all.length; x++) { all[x].classList.remove('is-current'); }
+            utility.classList.add('is-current');
+            var node = page.querySelector('.' + entry.target);
+            if (node && node.scrollIntoView) { node.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+            else if (entry.target === 'provider-my-list') { page.scrollTop = page.scrollHeight; }
+          };
+          page.appendChild(utility);
+        })(primeUtility[pu], pu);
+      }
+    }
     for (var n = 0; n < navItems.length; n++) {
       (function (label, index) {
         var nav = el('div', 'focusable provider-nav-item' + (index === 0 ? ' is-current' : ''), label);
