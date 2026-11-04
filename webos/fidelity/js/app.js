@@ -2768,9 +2768,11 @@ function portalServiceCall(method, params, done, customTimeout) {
     { id: 'hulu', label: 'HULU', aliases: ['hulu'], color: '#1b8f55', tagline: 'Series y entretenimiento' },
     { id: 'paramount', label: 'PARAMOUNT+', aliases: ['paramount', 'paramount plus'], color: '#1769aa', tagline: 'Películas y series' }
   ];
+  var EXPLORE_PROVIDER_SEED_COUNT = EXPLORE_PROVIDERS.length;
+  var EXPLORE_PROVIDER_COLORS = ['#126b58', '#8a4b12', '#315b91', '#704477', '#52602b', '#8b354d'];
 
   function providerWords(value) {
-    return norm(value || '').replace(/[^a-z0-9]+/g, ' ').replace(/^\s+|\s+$/g, '').split(/\s+/);
+    return norm(value || '').replace(/[^a-z0-9]+/g, ' ').replace(/^\\s+|\\s+$/g, '').split(/\\s+/);
   }
 
   function providerHasAlias(value, alias) {
@@ -2787,6 +2789,59 @@ function portalServiceCall(method, params, done, customTimeout) {
     return false;
   }
 
+  function providerConfigForValue(value) {
+    for (var i = 0; i < EXPLORE_PROVIDERS.length; i++) {
+      var aliases = EXPLORE_PROVIDERS[i].aliases || [];
+      for (var a = 0; a < aliases.length; a++) {
+        if (providerHasAlias(value, aliases[a])) { return EXPLORE_PROVIDERS[i]; }
+      }
+    }
+    return null;
+  }
+
+  function providerLabelFromRow(value) {
+    var label = String(value || '').replace(/[_]+/g, ' ').replace(/\\s+/g, ' ').replace(/^\\s+|\\s+$/g, '');
+    if (!label) { return ''; }
+    var suffix = /\\s+(?:originals?|movies?|films?|pel[ií]culas?|series|s[eé]ries|tv\\s*shows?|shows?|temporadas?)$/i;
+    if (!suffix.test(label)) { return ''; }
+    label = label.replace(suffix, '').replace(/[\\s:|_-]+$/g, '');
+    return label.length >= 2 ? label : '';
+  }
+
+  function refreshExploreProviders() {
+    /* Preserve the curated labels/colors, then rebuild only metadata-discovered
+       entries. This runs after every catalog replacement, so new providers
+       appear without editing a hard-coded platform list. */
+    EXPLORE_PROVIDERS.splice(EXPLORE_PROVIDER_SEED_COUNT);
+    var seen = {};
+    var paletteIndex = 0;
+    var ignored = { movie: true, movies: true, film: true, films: true, pelicula: true,
+      peliculas: true, series: true, serie: true, vod: true, tv: true, live: true,
+      premium: true, free: true, gratis: true, featured: true, destacado: true };
+    for (var i = 0; i < VOD.length; i++) {
+      var item = VOD[i];
+      var candidates = [item.provider || '', providerLabelFromRow(item.row)];
+      for (var c = 0; c < candidates.length; c++) {
+        var label = String(candidates[c] || '').replace(/\\s+/g, ' ').replace(/^\\s+|\\s+$/g, '');
+        if (!label || ignored[norm(label).replace(/[^a-z0-9]+/g, '')]) { continue; }
+        if (providerConfigForValue(label)) { continue; }
+        var words = providerWords(label);
+        if (!words.length || words.length > 5) { continue; }
+        var id = words.join('-');
+        if (seen[id]) { continue; }
+        seen[id] = true;
+        EXPLORE_PROVIDERS.push({
+          id: id,
+          label: label.toUpperCase(),
+          aliases: [label],
+          color: EXPLORE_PROVIDER_COLORS[paletteIndex % EXPLORE_PROVIDER_COLORS.length],
+          tagline: 'Películas y series de ' + label
+        });
+        paletteIndex++;
+      }
+    }
+  }
+
   function providerCatalogItems(provider) {
     var config = null;
     for (var p = 0; p < EXPLORE_PROVIDERS.length; p++) {
@@ -2795,11 +2850,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     if (!config) { return []; }
     var out = [];
     for (var i = 0; i < VOD.length; i++) {
-      /* The portal snapshot classifies titles in its row names
-         (for example "Apple TV+ Movie" and "Paramount + Series").
-         Keep explicit provider fields too for future/live catalog formats. */
-      var values = [VOD[i].provider || '', VOD[i].platform || '', VOD[i].service || '',
-        VOD[i].providerName || '', VOD[i].appName || '', VOD[i].row || ''];
+      var values = [VOD[i].provider || '', VOD[i].row || ''];
       var found = false;
       for (var v = 0; v < values.length && !found; v++) {
         for (var a = 0; a < config.aliases.length; a++) {
@@ -2811,7 +2862,34 @@ function portalServiceCall(method, params, done, customTimeout) {
     return out;
   }
 
+  function providerContinueItems(items) {
+    var history = localProfile.history || [];
+    var out = [];
+    for (var h = 0; h < history.length; h++) {
+      for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        if (String(history[h].id) === String(item.id) ||
+            (history[h].title && norm(history[h].title) === norm(item.title))) {
+          var duplicate = false;
+          for (var d = 0; d < out.length; d++) {
+            if (String(out[d].id) === String(item.id)) { duplicate = true; break; }
+          }
+          if (!duplicate) { out.push(item); }
+          break;
+        }
+      }
+    }
+    return out;
+  }
+
+  function appendProviderSection(page, items, y, title) {
+    if (!items || !items.length) { return y; }
+    appendCatalogGrid(page, items, y, title);
+    return y + 50 + Math.ceil(Math.min(items.length, 60) / 6) * 390 + 56;
+  }
+
   function buildProviderExperience(page, provider) {
+    refreshExploreProviders();
     var config = null;
     for (var i = 0; i < EXPLORE_PROVIDERS.length; i++) {
       if (EXPLORE_PROVIDERS[i].id === provider) { config = EXPLORE_PROVIDERS[i]; break; }
@@ -2839,7 +2917,18 @@ function portalServiceCall(method, params, done, customTimeout) {
       hero.classList.add('provider-hero');
       hero.style.borderTop = '5px solid ' + config.color;
       page.appendChild(hero);
-      if (items.length > 1) { appendCatalogGrid(page, items.slice(1), 820, 'Explorar catálogo'); }
+
+      var y = 820;
+      y = appendProviderSection(page, providerContinueItems(items), y, 'CONTINUAR VIENDO');
+      var movies = [];
+      var series = [];
+      for (var m = 0; m < items.length; m++) {
+        if (isSeriesItem(items[m])) { series.push(items[m]); }
+        else { movies.push(items[m]); }
+      }
+      y = appendProviderSection(page, movies, y, 'PELÍCULAS');
+      y = appendProviderSection(page, series, y, 'SERIES');
+      appendProviderSection(page, items, y, 'TODO EL CATÁLOGO');
     } else {
       var empty = el('div', 'catalog-empty',
         'Este servicio todavía no tiene títulos identificados en el catálogo conectado. Xuper no asignará películas o series por suposiciones.');
@@ -2852,13 +2941,14 @@ function portalServiceCall(method, params, done, customTimeout) {
   }
 
   function buildExplorePage(page) {
+    refreshExploreProviders();
     clear(page);
     var title = el('div', 'provider-hub-title', 'TUS PLATAFORMAS');
     abs(title, 192, 52, 1200, 72);
     title.style.cssText += ';font-size:48px;font-weight:800;color:#fff;';
     page.appendChild(title);
-    var subtitle = el('div', 'provider-hub-subtitle', 'Elige una experiencia para explorar su catálogo');
-    abs(subtitle, 192, 124, 1400, 42);
+    var subtitle = el('div', 'provider-hub-subtitle', 'Plataformas detectadas automáticamente en los metadatos del catálogo');
+    abs(subtitle, 192, 124, 1500, 42);
     subtitle.style.cssText += ';font-size:24px;color:#bdbdbd;';
     page.appendChild(subtitle);
 
