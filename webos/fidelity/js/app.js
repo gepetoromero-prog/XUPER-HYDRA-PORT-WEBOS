@@ -3837,6 +3837,7 @@ function portalServiceCall(method, params, done, customTimeout) {
 
   function clearSearchState() {
     if (state.searchTimer) { clearTimeout(state.searchTimer); state.searchTimer = null; }
+    state.searchSeq = (state.searchSeq || 0) + 1;
     state.searchQuery = '';
     updateSearchInput();
     if (searchResultGrid) { clear(searchResultGrid); }
@@ -3897,6 +3898,9 @@ function portalServiceCall(method, params, done, customTimeout) {
       clearSearchState();
       return;
     }
+    /* Invalidate every older remote response as soon as the query changes. */
+    var seq = (state.searchSeq || 0) + 1;
+    state.searchSeq = seq;
     /* Instant local search across all useful metadata, including partial
        substrings and multi-word queries. Normalize each record only once. */
     var localMatches = [];
@@ -3922,7 +3926,6 @@ function portalServiceCall(method, params, done, customTimeout) {
     /* Debounced remote portal search (350ms) */
     if (state.searchTimer) { clearTimeout(state.searchTimer); }
     if (vodApi.mode === 'portal' && q.length >= 2) {
-      var seq = ++state.searchSeq;
       state.searchTimer = setTimeout(function () {
         portalServiceCall('search', { value: rawQ.trim() }, function (error, payload) {
           if (seq !== state.searchSeq) { return; }
