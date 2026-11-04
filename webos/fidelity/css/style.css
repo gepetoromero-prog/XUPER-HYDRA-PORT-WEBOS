@@ -4076,6 +4076,28 @@ div, section, span { outline: none; }
 .provider-experience .provider-nav-item.is-current {
   background:rgba(255,255,255,.075);
 }
+
+/* Side-navigation variants for TV services whose living-room apps use a
+   left utility rail. Keep Netflix/Prime-style top navigation independent. */
+.provider-experience.provider-nav-left .provider-nav-item {
+  justify-content:flex-start;
+  padding:0 16px;
+  border:1px solid transparent;
+  border-radius:8px;
+  background:rgba(0,0,0,.28);
+  font-size:17px;
+  text-align:left;
+}
+.provider-experience.provider-nav-left .provider-nav-item.is-current {
+  background:rgba(255,255,255,.13);
+  border:1px solid rgba(255,255,255,.22);
+  border-left:4px solid var(--provider-accent,#fff);
+}
+.provider-experience.provider-nav-left .provider-nav-item.is-focused {
+  outline:2px solid #fff;
+  outline-offset:2px;
+}
+
 .provider-experience .provider-nav-item.is-focused {
   color:#fff;
   outline:2px solid rgba(255,255,255,.92);
