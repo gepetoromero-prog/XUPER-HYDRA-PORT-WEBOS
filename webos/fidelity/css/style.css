@@ -4041,3 +4041,167 @@ div, section, span { outline: none; }
 .provider-theme-netflix .provider-rail-card.is-focused {
   transform:scale(1.055);
 }
+
+
+/* =============================================================================
+   PROVIDER EXPERIENCE – shared TV navigation and service-specific polish
+   CSS-only layer: playback, catalog mapping and remote-key logic stay untouched.
+   ============================================================================= */
+.provider-experience {
+  color:#f7f8fb;
+  scrollbar-width:none;
+  overscroll-behavior:contain;
+}
+.provider-experience::-webkit-scrollbar { display:none; }
+.provider-experience .provider-back {
+  min-height:54px;
+  border:1px solid rgba(255,255,255,.18);
+  transition:background .15s ease,border-color .15s ease;
+}
+.provider-experience .provider-back.is-focused {
+  background:rgba(255,255,255,.18);
+  border-color:#fff;
+}
+.provider-experience .provider-brand {
+  max-width:900px;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.provider-experience .provider-nav-item {
+  min-height:48px;
+  border-radius:4px 4px 0 0;
+  transition:background .15s ease,color .15s ease,border-color .15s ease;
+}
+.provider-experience .provider-nav-item.is-current {
+  background:rgba(255,255,255,.075);
+}
+.provider-experience .provider-nav-item.is-focused {
+  color:#fff;
+  outline:2px solid rgba(255,255,255,.92);
+  outline-offset:-3px;
+  background:rgba(255,255,255,.13);
+  border-bottom-color:var(--provider-accent,#fff);
+}
+.provider-experience .provider-hero {
+  position:relative;
+  isolation:isolate;
+  background:
+    linear-gradient(90deg,rgba(0,0,0,.76) 0%,rgba(0,0,0,.22) 58%,rgba(0,0,0,.02) 100%),
+    #17191e;
+}
+.provider-experience .provider-hero:after {
+  content:"";
+  position:absolute;
+  z-index:1;
+  left:0;right:0;bottom:0;height:48%;
+  background:linear-gradient(0deg,rgba(0,0,0,.78),transparent);
+  pointer-events:none;
+}
+.provider-experience .provider-hero .bento-title {
+  z-index:3;
+  max-width:900px;
+  line-height:1.12;
+  overflow:hidden;
+}
+.provider-experience .provider-hero-meta {
+  text-shadow:0 2px 8px rgba(0,0,0,.9);
+}
+.provider-experience .provider-play,
+.provider-experience .provider-more {
+  min-height:62px;
+  padding:0 24px;
+  transition:transform .15s ease,background .15s ease,box-shadow .15s ease;
+}
+.provider-experience .provider-play.is-focused {
+  background:var(--provider-accent,#fff);
+  color:#fff;
+  transform:scale(1.045);
+  outline:3px solid #fff;
+  outline-offset:3px;
+}
+.provider-experience .provider-more.is-focused {
+  background:rgba(255,255,255,.28);
+  color:#fff;
+  transform:scale(1.035);
+  outline:3px solid #fff;
+  outline-offset:3px;
+}
+.provider-experience .provider-rail-title {
+  padding-left:2px;
+  text-shadow:0 2px 8px rgba(0,0,0,.45);
+}
+.provider-experience .provider-rail-card {
+  border:2px solid transparent;
+  background:rgba(255,255,255,.045);
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
+}
+.provider-experience .provider-rail-card.is-focused {
+  transform:scale(1.055);
+  border-color:#fff;
+  box-shadow:0 8px 28px rgba(0,0,0,.65);
+}
+.provider-experience .provider-progress-track {
+  box-shadow:0 1px 5px rgba(0,0,0,.75);
+}
+.provider-experience .catalog-empty {
+  max-width:1450px;
+  background:rgba(255,255,255,.055);
+  border:1px solid rgba(255,255,255,.12);
+  border-left:5px solid var(--provider-accent,#fff);
+  border-radius:8px;
+  color:#f0f2f6;
+}
+
+/* Each service keeps its own visual language while sharing focus behavior. */
+.provider-theme-prime .provider-nav-item.is-current,
+.provider-theme-prime .provider-nav-item.is-focused { border-color:#00a8e1; }
+.provider-theme-prime .provider-play.is-focused { background:#00a8e1; color:#06131c; }
+.provider-theme-disney .provider-nav-item.is-current,
+.provider-theme-disney .provider-nav-item.is-focused { border-color:#72b7ff; }
+.provider-theme-disney .provider-play.is-focused { background:#72b7ff; color:#071326; }
+.provider-theme-max .provider-nav-item.is-current,
+.provider-theme-max .provider-nav-item.is-focused { border-color:#a88bff; }
+.provider-theme-max .provider-play.is-focused { background:#a88bff; color:#100b20; }
+.provider-theme-apple .provider-nav-item.is-current,
+.provider-theme-apple .provider-nav-item.is-focused { border-color:#fff; }
+.provider-theme-apple .provider-play.is-focused { background:#fff; color:#111; }
+.provider-theme-hulu .provider-nav-item.is-current,
+.provider-theme-hulu .provider-nav-item.is-focused { border-color:#1ce783; }
+.provider-theme-hulu .provider-play.is-focused { background:#1ce783; color:#06160e; }
+.provider-theme-paramount .provider-nav-item.is-current,
+.provider-theme-paramount .provider-nav-item.is-focused { border-color:#55aaff; }
+.provider-theme-paramount .provider-play.is-focused { background:#55aaff; color:#071326; }
+
+/* Platform picker: clear hierarchy, consistent card geometry and remote focus. */
+.provider-hub-title { letter-spacing:-1px; }
+.provider-hub-subtitle { max-width:1450px; line-height:1.35; }
+.provider-hub-tile {
+  overflow:hidden;
+  box-shadow:0 12px 30px rgba(0,0,0,.24);
+  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+}
+.provider-hub-tile.is-focused {
+  transform:scale(1.045);
+  border:3px solid #fff !important;
+  box-shadow:0 12px 34px rgba(0,0,0,.62),0 0 0 2px rgba(255,255,255,.2);
+  z-index:8;
+}
+.provider-hub-name {
+  max-width:94%;
+  font-size:27px;
+  line-height:1.2;
+  font-weight:900;
+  text-align:center;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.provider-hub-count {
+  margin-top:12px;
+  padding:6px 12px;
+  border-radius:18px;
+  background:rgba(0,0,0,.22);
+  color:rgba(255,255,255,.94);
+  font-size:17px;
+  font-weight:700;
+}
