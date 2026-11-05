@@ -3816,7 +3816,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     }
 
     var feedback = el('div', 'kb-feedback focusable', 'Feedback');
-    feedback._activate = function () { /* feedback form not reconstructed */ };
+    feedback._activate = function () { openSettings(); showSettingsPanel(6, true); };
     searchKeyboard.appendChild(feedback);
 
     /* --- hot search grid (observed "Búsqueda popular", 10 portrait cells) --- */
@@ -3886,7 +3886,9 @@ function portalServiceCall(method, params, done, customTimeout) {
     updateSearchInput();
     if (searchResultGrid) { clear(searchResultGrid); }
     state.searchMatches = [];
+    state.searchBaseMatches = [];
     state.searchPage = 0;
+    state.searchLivePage = 0;
     if (searchNav) { searchNav.textContent = ''; }
     if (searchResults) { searchResults.classList.remove('is-active'); }
     if (searchEmpty) { searchEmpty.classList.remove('is-active'); }
@@ -3940,6 +3942,25 @@ function portalServiceCall(method, params, done, customTimeout) {
     var q = norm(rawQ.trim());
     if (!q) {
       clearSearchState();
+      return;
+    }
+    /* Live-TV search is local against the already loaded channel catalogue. */
+    if (state.searchScope === 'live') {
+      var liveMatches = [];
+      for (var liveIndex = 0; liveIndex < CHANNELS.length; liveIndex++) {
+        var liveChannel = CHANNELS[liveIndex] || {};
+        var liveText = norm([liveChannel.name, liveChannel.category, liveChannel.columnName,
+          liveChannel.groupTitle, liveChannel.now, liveChannel.channelCode].join(' '));
+        var liveHit = liveText.indexOf(q) !== -1;
+        if (!liveHit) {
+          liveHit = true;
+          for (var liveToken = 0; liveToken < queryTokens.length; liveToken++) {
+            if (liveText.indexOf(queryTokens[liveToken]) === -1) { liveHit = false; break; }
+          }
+        }
+        if (liveHit) { liveMatches.push({ channel: liveChannel, index: liveIndex }); }
+      }
+      renderLiveSearchResults(liveMatches);
       return;
     }
     /* Invalidate every older remote response as soon as the query changes. */
@@ -4013,6 +4034,64 @@ function portalServiceCall(method, params, done, customTimeout) {
     renderSearchResultPage(0, -1);
   }
 
+  function renderLiveSearchResults(matches) {
+    if (!searchHot || !searchResults || !searchResultGrid) { return; }
+    searchHot.classList.add('is-hidden');
+    searchResults.classList.add('is-active');
+    searchEmpty.classList.remove('is-active');
+    var filterBar = searchResults.querySelector('.search-filter-bar');
+    if (filterBar) {
+      var chips = filterBar.querySelectorAll('.focusable');
+      for (var c = 0; c < chips.length; c++) {
+        chips[c].style.background = chips[c].textContent === 'TV en vivo' ? '#c91923' : '#292d35';
+      }
+    }
+    clear(searchResultGrid);
+    if (!matches.length) {
+      searchEmpty.classList.add('is-active');
+      searchNav.textContent = 'No se encontraron canales en vivo.';
+      return;
+    }
+    var pageSize = 10;
+    var pageCount = Math.ceil(matches.length / pageSize);
+    var page = Math.max(0, Math.min(pageCount - 1, state.searchLivePage || 0));
+    state.searchLivePage = page;
+    var start = page * pageSize;
+    var end = Math.min(matches.length, start + pageSize);
+    searchNav.textContent = 'Canales ' + (start + 1) + '-' + end + ' de ' + matches.length +
+      (pageCount > 1 ? '  ·  Página ' + (page + 1) + '/' + pageCount : '');
+    for (var i = start; i < end; i++) {
+      (function (entry, localIndex) {
+        var cell = el('div', 'search-cell');
+        abs(cell, (localIndex % 5) * 246, Math.floor(localIndex / 5) * 437, 246, 437);
+        var poster = el('div', 'poster focusable');
+        poster.style.cssText = 'position:absolute;left:0;top:0;width:222px;height:329px;background:#171b24 center/contain no-repeat;border:2px solid #353b46;border-radius:8px;';
+        if (entry.channel.logo) { poster.style.backgroundImage = 'url("' + String(entry.channel.logo).replace(/"/g, '') + '")'; }
+        poster.appendChild(el('span', 'live-search-play', '▶'));
+        poster._activate = function () {
+          setChannel(entry.index, true);
+          if (state.screen === 'settings') { showScreen('search'); }
+          openPlayer('live');
+        };
+        poster._onMove = function (dir) {
+          if (dir === 'down' && localIndex >= 5 && end < matches.length) {
+            state.searchLivePage = page + 1; renderLiveSearchResults(matches); return true;
+          }
+          if (dir === 'up' && localIndex < 5 && start > 0) {
+            state.searchLivePage = page - 1; renderLiveSearchResults(matches); return true;
+          }
+          return false;
+        };
+        cell.appendChild(poster);
+        cell.appendChild(el('div', 's-name', entry.channel.name || 'Canal'));
+        searchResultGrid.appendChild(cell);
+      })(matches[i], i - start);
+    }
+    searchResultGrid.style.height = '874px';
+    var first = firstIn(searchResultGrid);
+    if (first && state.screen === 'search' && !closest(state.focus, '.search-results')) { setFocus(first); }
+  }
+
   function renderSearchResultPage(requestedPage, focusIndex) {
     var matches = state.searchMatches || [];
     searchHot.classList.add('is-hidden');
@@ -4021,12 +4100,19 @@ function portalServiceCall(method, params, done, customTimeout) {
     if (!filterBar) {
       filterBar = el('div', 'search-filter-bar');
       filterBar.style.cssText = 'position:absolute;left:0;top:0;display:flex;gap:12px;z-index:5;height:54px;align-items:center;';
-      var filterDefs = [{id:'all',label:'Todo'},{id:'movies',label:'Películas'},{id:'series',label:'Series'},{id:'free',label:'Gratis'},{id:'kids',label:'Infantil'},{id:'uhd',label:'UHD'}];
+      var filterDefs = [{id:'all',label:'Todo'},{id:'movies',label:'Películas'},{id:'series',label:'Series'},{id:'free',label:'Gratis'},{id:'kids',label:'Infantil'},{id:'uhd',label:'UHD'},{id:'live',label:'TV en vivo'}];
       for (var fi = 0; fi < filterDefs.length; fi++) {
         (function (def, filterIndex) {
           var chip = el('div', 'focusable', def.label);
           chip.style.cssText = 'padding:8px 18px;border-radius:18px;background:#292d35;color:#fff;font-size:19px;';
           chip._activate = function () {
+            if (def.id === 'live') {
+              state.searchScope = 'live';
+              runSearch();
+              setFocus(chip);
+              return;
+            }
+            state.searchScope = 'vod';
             state.searchFilter = def.id;
             renderSearchResults(state.searchBaseMatches || []);
             var activeBar = searchResults.querySelector('.search-filter-bar');
