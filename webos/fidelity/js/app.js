@@ -1362,7 +1362,14 @@ function portalServiceCall(method, params, done, customTimeout) {
     if (state.screen === 'settings') {
       var settingsRet = state.settingsReturn;
       state.settingsReturn = null;
-      if (settingsRet && (settingsRet.screen === 'detail' || settingsRet.screen === 'search')) {
+      if (settingsRet && settingsRet.screen === 'player') {
+        state.channel = settingsRet.channel;
+        state.playerMode = settingsRet.playerMode || 'live';
+        state.playerItem = settingsRet.playerItem || null;
+        state.playerEpisode = settingsRet.playerEpisode || null;
+        openPlayer(state.playerMode, state.playerItem, state.playerEpisode);
+        state.playerReturn = settingsRet.playerReturn || { screen: 'home', focus: null };
+      } else if (settingsRet && (settingsRet.screen === 'detail' || settingsRet.screen === 'search')) {
         showScreen(settingsRet.screen);
         if (settingsRet.focus && isVisible(settingsRet.focus)) { setFocus(settingsRet.focus); }
       } else {
@@ -4283,7 +4290,12 @@ function portalServiceCall(method, params, done, customTimeout) {
   function openSettings() {
     if (!settingsMenu) { buildSettings(); }
     if (state.screen !== 'settings') {
-      state.settingsReturn = { screen: state.screen, focus: state.focus, tab: state.tab };
+      state.settingsReturn = {
+        screen: state.screen, focus: state.focus, tab: state.tab,
+        playerMode: state.playerMode, playerItem: state.playerItem,
+        playerEpisode: state.playerEpisode, playerReturn: state.playerReturn,
+        channel: state.channel
+      };
     }
     showScreen('settings');
     showSettingsPanel(0, false);
