@@ -872,7 +872,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     { label: 'KIDS', page: 4, icon: 'kids' },
     { label: 'ANIME', page: 5, icon: 'anime' },
     { label: 'NOVELAS', page: 6, icon: 'novel' },
-    { label: 'EXPLORAR', page: 7, icon: 'compass' },
+    { label: 'PLATAFORMAS', page: 7, icon: 'compass' },
     { label: 'HISTORIAL', page: -1, icon: 'history', action: 'history' }
   ];
 
@@ -908,7 +908,7 @@ function portalServiceCall(method, params, done, customTimeout) {
   var parentUnlocked = false;
   var state = {
     screen: 'welcome',
-    tab: 2,
+    tab: 7,
     channel: 0,
     focus: null,
     detail: null,
@@ -3309,32 +3309,43 @@ function portalServiceCall(method, params, done, customTimeout) {
   function buildExplorePage(page) {
     refreshExploreProviders();
     clear(page);
+    page.className = 'home-page scrollable platform-launcher';
     var title = el('div', 'provider-hub-title', 'TUS PLATAFORMAS');
-    abs(title, 192, 52, 1200, 72);
-    title.style.cssText += ';font-size:48px;font-weight:800;color:#fff;';
+    abs(title, 430, 58, 1300, 70);
+    title.style.cssText += ';font-size:52px;font-weight:800;color:#fff;letter-spacing:-1px;';
     page.appendChild(title);
-    var subtitle = el('div', 'provider-hub-subtitle', 'Plataformas detectadas automáticamente en los metadatos del catálogo');
-    abs(subtitle, 192, 124, 1500, 42);
-    subtitle.style.cssText += ';font-size:24px;color:#bdbdbd;';
+    var subtitle = el('div', 'provider-hub-subtitle', 'Elige un servicio para entrar a su espacio');
+    abs(subtitle, 432, 132, 1400, 42);
+    subtitle.style.cssText += ';font-size:25px;color:#bdbdbd;';
     page.appendChild(subtitle);
 
+    var marks = {
+      netflix: 'N', prime: 'prime', disney: 'D+', max: 'max',
+      apple: 'tv+', hulu: 'hulu', paramount: '✦'
+    };
     for (var i = 0; i < EXPLORE_PROVIDERS.length; i++) {
       (function (config, index) {
-        var tile = el('div', 'focusable provider-hub-tile');
-        abs(tile, 192 + (index % 4) * 318, 230 + Math.floor(index / 4) * 220, 286, 190);
-        tile.style.cssText += ';display:flex;flex-direction:column;justify-content:center;align-items:center;box-sizing:border-box;border-radius:18px;background:' +
-          config.color + ';border:2px solid rgba(255,255,255,.16);color:#fff;';
+        var tile = el('div', 'focusable provider-hub-tile provider-launch-' + config.id);
+        abs(tile, 430 + (index % 4) * 342, 220 + Math.floor(index / 4) * 238, 310, 204);
+        tile.style.cssText += ';display:flex;flex-direction:column;justify-content:center;align-items:center;box-sizing:border-box;border-radius:16px;background:' +
+          config.color + ';border:2px solid rgba(255,255,255,.18);color:#fff;';
+        var mark = el('div', 'provider-hub-mark', marks[config.id] || config.label.charAt(0));
+        tile.appendChild(mark);
         tile.appendChild(el('div', 'provider-hub-name', config.label));
         var count = providerCatalogItems(config.id).length;
-        tile.appendChild(el('div', 'provider-hub-count', count ? (count + ' títulos') : 'Catálogo por conectar'));
-        tile._activate = function () { buildProviderExperience(page, config.id); var first = firstIn(page); if (first) { setFocus(first); } };
+        tile.appendChild(el('div', 'provider-hub-count', count ? (count + ' títulos') : 'Explorar servicio'));
+        tile._activate = function () {
+          buildProviderExperience(page, config.id);
+          var firstNav = page.querySelector('.provider-nav-item') || page.querySelector('.provider-play') || firstIn(page);
+          if (firstNav) { setFocus(firstNav); }
+        };
         page.appendChild(tile);
       })(EXPLORE_PROVIDERS[i], i);
     }
     var note = el('div', 'catalog-empty',
-      'Las plataformas usan los títulos y enlaces autorizados que entrega tu servicio. La reproducción, el progreso y el control remoto permanecen dentro de Xuper.');
-    abs(note, 192, 680, 1320, 110);
-    note.style.cssText += ';white-space:normal;line-height:1.5;padding:24px;font-size:22px;';
+      'Cada servicio tiene su propio diseño y navegación. El contenido disponible depende del catálogo autorizado conectado a Xuper.');
+    abs(note, 430, 720, 1360, 92);
+    note.style.cssText += ';white-space:normal;line-height:1.45;padding:20px 24px;font-size:21px;border-left:4px solid #777;';
     page.appendChild(note);
   }
 
@@ -8397,8 +8408,10 @@ function portalServiceCall(method, params, done, customTimeout) {
     if (map.tab !== undefined) {
       selectTab(parseInt(map.tab, 10) || 0, true);
     } else {
-      selectTab(0, false);
-      setFocus(liveFocus);
+      selectTab(7, false);
+      var platformPage = pages[TABS[7].page];
+      var platformFocus = platformPage ? firstIn(platformPage) : null;
+      setFocus(platformFocus || liveFocus);
     }
 
     if (screen === 'detail') {
