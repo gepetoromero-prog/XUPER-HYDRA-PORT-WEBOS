@@ -1251,6 +1251,17 @@ function portalServiceCall(method, params, done, customTimeout) {
     var now = Date.now();
     if (now - lastBackTime < 250) { return; }
     lastBackTime = now;
+    /* BACK from a service returns to the platform selector, never to Xuper's
+       global sidebar. Keep this local to the provider experience. */
+    if (state.screen === 'home' && state.focus && closest(state.focus, '.provider-experience')) {
+      var providerPage = closest(state.focus, '.provider-experience');
+      buildExplorePage(providerPage);
+      var homeScreen = $('screen-home');
+      if (homeScreen) { homeScreen.classList.remove('is-provider-mode'); }
+      var firstPlatform = firstIn(providerPage);
+      if (firstPlatform) { setFocus(firstPlatform); }
+      return;
+    }
     /* The audio/subtitle dialog can now open from the details screen too. */
     if (dialogPlaySettingsOpen) {
       closePlaySettingsDialog();
@@ -3147,6 +3158,8 @@ function portalServiceCall(method, params, done, customTimeout) {
     backBtn._activate = function () {
       buildExplorePage(page);
       page.classList.remove('provider-experience');
+      var homeScreen = $('screen-home');
+      if (homeScreen) { homeScreen.classList.remove('is-provider-mode'); }
       var first = firstIn(page); if (first) { setFocus(first); }
     };
     page.appendChild(backBtn);
@@ -3319,22 +3332,31 @@ function portalServiceCall(method, params, done, customTimeout) {
     subtitle.style.cssText += ';font-size:25px;color:#bdbdbd;';
     page.appendChild(subtitle);
 
-    var marks = {
-      netflix: 'N', prime: 'prime', disney: 'D+', max: 'max',
-      apple: 'tv+', hulu: 'hulu', paramount: '✦'
+    var logoUrls = {
+      netflix: 'https://cdn.simpleicons.org/netflix/E50914',
+      prime: 'https://cdn.simpleicons.org/primevideo/00A8E1',
+      disney: 'https://cdn.simpleicons.org/disneyplus/FFFFFF',
+      max: 'https://cdn.simpleicons.org/max/FFFFFF',
+      apple: 'https://cdn.simpleicons.org/appletv/FFFFFF',
+      hulu: 'https://cdn.simpleicons.org/hulu/1CE783',
+      paramount: 'https://cdn.simpleicons.org/paramountplus/FFFFFF'
     };
     for (var i = 0; i < EXPLORE_PROVIDERS.length; i++) {
       (function (config, index) {
         var tile = el('div', 'focusable provider-hub-tile provider-launch-' + config.id);
         abs(tile, 430 + (index % 4) * 342, 220 + Math.floor(index / 4) * 238, 310, 204);
-        tile.style.cssText += ';display:flex;flex-direction:column;justify-content:center;align-items:center;box-sizing:border-box;border-radius:16px;background:' +
-          config.color + ';border:2px solid rgba(255,255,255,.18);color:#fff;';
-        var mark = el('div', 'provider-hub-mark', marks[config.id] || config.label.charAt(0));
-        tile.appendChild(mark);
+        tile.style.cssText += ';display:flex;flex-direction:column;justify-content:center;align-items:center;box-sizing:border-box;border-radius:16px;background:#101116;border:1px solid rgba(255,255,255,.16);color:#fff;';
+        var logo = el('img', 'provider-hub-logo');
+        logo.alt = config.label;
+        logo.src = logoUrls[config.id] || '';
+        logo.onerror = function () { this.style.display = 'none'; };
+        tile.appendChild(logo);
         tile.appendChild(el('div', 'provider-hub-name', config.label));
         var count = providerCatalogItems(config.id).length;
         tile.appendChild(el('div', 'provider-hub-count', count ? (count + ' títulos') : 'Explorar servicio'));
         tile._activate = function () {
+          var homeScreen = $('screen-home');
+          if (homeScreen) { homeScreen.classList.add('is-provider-mode'); }
           buildProviderExperience(page, config.id);
           var firstNav = page.querySelector('.provider-nav-item') || page.querySelector('.provider-play') || firstIn(page);
           if (firstNav) { setFocus(firstNav); }
