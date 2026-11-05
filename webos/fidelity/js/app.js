@@ -4095,7 +4095,9 @@ function portalServiceCall(method, params, done, customTimeout) {
         var poster = el('div', 'poster focusable');
         poster.style.cssText = 'position:absolute;left:0;top:0;width:222px;height:329px;background:#171b24 center/contain no-repeat;border:2px solid #353b46;border-radius:8px;';
         if (entry.channel.logo) { poster.style.backgroundImage = 'url("' + String(entry.channel.logo).replace(/"/g, '') + '")'; }
-        poster.appendChild(el('span', 'live-search-play', '▶'));
+        var playMark = el('span', 'live-search-play', '▶');
+        playMark.style.cssText = 'position:absolute;left:86px;top:128px;width:48px;height:48px;line-height:48px;text-align:center;border-radius:50%;background:rgba(0,0,0,.72);color:#fff;font-size:27px;';
+        poster.appendChild(playMark);
         poster._activate = function () {
           if (setChannel(entry.index, true) === false) { return; }
           openPlayer('live');
