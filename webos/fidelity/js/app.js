@@ -3114,7 +3114,7 @@ function portalServiceCall(method, params, done, customTimeout) {
   function appendProviderSection(page, items, y, title) {
     if (!items || !items.length) { return y; }
     appendCatalogGrid(page, items, y, title);
-    return y + 50 + Math.ceil(Math.min(items.length, 60) / 6) * 390 + 56;
+    return y + 50 + Math.ceil(items.length / 6) * 390 + 56;
   }
 
   function providerThemeClass(provider) {
