@@ -2740,14 +2740,48 @@ function portalServiceCall(method, params, done, customTimeout) {
     var colW = 276;
     var colH = 390;
     var maxCols = 6;
-    var limit = Math.min(items.length, 60);
-    for (var k = 0; k < limit; k++) {
-      var col = k % maxCols;
-      var row = Math.floor(k / maxCols);
-      var px = 192 + col * colW;
-      var py = y + row * colH;
-      page.appendChild(makePoster(items[k], px, py, 250, 360, { gold: true }));
+    var batchSize = 60;
+    var rendered = 0;
+    var gridTop = y;
+    var gridControl = null;
+
+    function appendBatch() {
+      var start = rendered;
+      var end = Math.min(items.length, start + batchSize);
+      for (var k = start; k < end; k++) {
+        var col = k % maxCols;
+        var row = Math.floor(k / maxCols);
+        var px = 192 + col * colW;
+        var py = gridTop + row * colH;
+        page.appendChild(makePoster(items[k], px, py, 250, 360, { gold: true }));
+      }
+      rendered = end;
+      if (gridControl && gridControl.parentNode) {
+        page.removeChild(gridControl);
+        gridControl = null;
+      }
+      if (rendered < items.length) {
+        var controlY = gridTop + Math.ceil(rendered / maxCols) * colH + 24;
+        gridControl = el('div', 'focusable catalog-load-more',
+          'CARGAR MÁS  ·  ' + rendered + ' DE ' + items.length);
+        abs(gridControl, 192, controlY, 1249, 66);
+        gridControl.style.cssText += ';display:flex;align-items:center;justify-content:center;' +
+          'box-sizing:border-box;border:2px solid rgba(255,255,255,.28);border-radius:10px;' +
+          'background:#20242d;color:#fff;font-size:22px;font-weight:700;';
+        gridControl._activate = function () {
+          appendBatch();
+          if (rendered > start) {
+            var posters = page.querySelectorAll('.poster.focusable');
+            var next = posters[start];
+            if (next) { setFocus(next); }
+          }
+        };
+        page.appendChild(gridControl);
+      }
+      page.style.minHeight = Math.max(page.scrollHeight, gridTop +
+        Math.ceil(rendered / maxCols) * colH + (gridControl ? 110 : 40)) + 'px';
     }
+    appendBatch();
   }
 
   function buildFeaturedPage(page) {
