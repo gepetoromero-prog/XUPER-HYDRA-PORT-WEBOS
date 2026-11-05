@@ -171,7 +171,8 @@
 #screen-player .vod-time-current,
 #screen-player .vod-time-total { color:#fff !important; font-size:19px !important; }
 #screen-player .vod-infobar-title { color:#fff; font-size:26px; font-weight:700; }
-#screen-player .vod-infobar-tips { gap:18px; }
+#screen-player .vod-infobar-tips > * { margin-left:18px; }
+#screen-player .vod-infobar-tips > *:first-child { margin-left:0; }
 #screen-player .vod-tip {
   display:inline-flex; align-items:center; gap:8px;
   padding:9px 13px; border-radius:6px;
