@@ -2402,7 +2402,7 @@ function portalServiceCall(method, params, done, customTimeout) {
       row.appendChild(name);
       if (i === state.channel) { row.classList.add('is-current'); }
       row._activate = (function (idx) {
-        return function () { setChannel(idx, true); openPlayer('live'); };
+        return function () { if (setChannel(idx, true) !== false) { openPlayer('live'); } };
       })(i);
       row._onMove = (function (idx) {
         return function (dir) {
@@ -2452,6 +2452,12 @@ function portalServiceCall(method, params, done, customTimeout) {
 
   function setChannel(index, immediate) {
     if (index < 0) { index = 0; }
+    if (CHANNELS[index] && isAdultLiveChannel(CHANNELS[index]) && !state.crOn) {
+      state.parentBlockedTitle = CHANNELS[index].name || 'Canal para adultos';
+      openSettings();
+      showSettingsPanel(3, true);
+      return false;
+    }
     if (index > CHANNELS.length - 1) { index = CHANNELS.length - 1; }
     state.channel = index;
     for (var i = 0; i < liveRows.length; i++) {
@@ -2469,6 +2475,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     } else if (state.screen === 'home' && state.tab === 0) {
       scheduleLivePreview(CHANNELS[index]);
     }
+    return true;
   }
 
   /* --- Addon Manager Dialog logic --- */
@@ -3321,6 +3328,14 @@ function portalServiceCall(method, params, done, customTimeout) {
     page.appendChild(note);
   }
 
+  function isAdultLiveChannel(channel) {
+    if (!channel) { return false; }
+    var labels = norm([channel.name, channel.category, channel.columnName,
+      channel.column_name, channel.groupTitle, channel.groupName, channel.type,
+      channel.tags, channel.remark].join(' '));
+    return /(^|[\\s,_-])(adult|adulto|18\\+|xxx|erotico|porn)([\\s,_-]|$)/.test(labels);
+  }
+
   function isAdultCatalogItem(item) {
     if (!item) { return false; }
     var labels = norm([item.category, item.row, item.provider, item.kind, item.title].join(' '));
@@ -4069,8 +4084,7 @@ function portalServiceCall(method, params, done, customTimeout) {
         if (entry.channel.logo) { poster.style.backgroundImage = 'url("' + String(entry.channel.logo).replace(/"/g, '') + '")'; }
         poster.appendChild(el('span', 'live-search-play', '▶'));
         poster._activate = function () {
-          setChannel(entry.index, true);
-          if (state.screen === 'settings') { showScreen('search'); }
+          if (setChannel(entry.index, true) === false) { return; }
           openPlayer('live');
         };
         poster._onMove = function (dir) {
@@ -7213,7 +7227,7 @@ function portalServiceCall(method, params, done, customTimeout) {
       if (c === state.channel) { row.classList.add('is-current'); }
       row._activate = (function (idx) {
         return function () {
-          setChannel(idx, true);
+          if (setChannel(idx, true) === false) { return; }
           closeChannelPanel();
           setFocus(playerStage);
         };
