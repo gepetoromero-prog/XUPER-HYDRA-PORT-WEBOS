@@ -56,6 +56,15 @@ jobs:
           grep -Fq "mousemove" webos/fidelity/js/app.js
           grep -Fq "document.addEventListener('keydown', handleKey" webos/fidelity/js/app.js
           grep -Fq "function moveFocus" webos/fidelity/js/app.js
+          grep -Fq "function isAdultCatalogItem" webos/fidelity/js/app.js
+          grep -Fq "function isAdultLiveChannel" webos/fidelity/js/app.js
+          grep -Fq "function renderLiveSearchResults" webos/fidelity/js/app.js
+          grep -Fq "state.searchScope === 'live'" webos/fidelity/js/app.js
+          grep -Fq "function buildParentPanel" webos/fidelity/js/app.js
+          grep -Fq "function buildHistoryPanel" webos/fidelity/js/app.js
+          grep -Fq "function buildUpgradePanel" webos/fidelity/js/app.js
+          grep -Fq "function checkHydraUpdate" webos/fidelity/js/app.js
+          grep -Fq "state.settingsReturn" webos/fidelity/js/app.js
           grep -Fq "function buildProviderExperience" webos/fidelity/js/app.js
           grep -Fq "function refreshExploreProviders" webos/fidelity/js/app.js
           for provider in netflix prime disney max apple hulu paramount; do
