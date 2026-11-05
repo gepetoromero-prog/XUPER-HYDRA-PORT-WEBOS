@@ -3333,7 +3333,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     var labels = norm([channel.name, channel.category, channel.columnName,
       channel.column_name, channel.groupTitle, channel.groupName, channel.type,
       channel.tags, channel.remark].join(' '));
-    return /(^|[\\s,_-])(adult|adulto|18\\+|xxx|erotico|porn)([\\s,_-]|$)/.test(labels);
+    return /(^|[\s,_-])(adult|adulto|18\+|xxx|erotico|porn)([\s,_-]|$)/.test(labels);
   }
 
   function isAdultCatalogItem(item) {
@@ -4460,7 +4460,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     var tabs = el('div', 'history-tabs');
     var tabDefs = [
       { id: 'history', label: 'Historia' },
-      { id: 'favs', label: 'Mi favoritos' }
+      { id: 'favs', label: 'Mis favoritos' }
     ];
     for (var t = 0; t < tabDefs.length; t++) {
       (function (tab) {
@@ -4488,6 +4488,24 @@ function portalServiceCall(method, params, done, customTimeout) {
     var total = el('div', 'history-total', 'Total ');
     total.appendChild(el('span', null, String(records.length)));
     p.appendChild(total);
+    var clearList = el('div', 'focusable', historyViewTab === 'history' ? 'Borrar historial' : 'Vaciar favoritos');
+    clearList.style.cssText = 'position:absolute;right:42px;top:142px;padding:9px 22px;background:#292d35;border-radius:5px;font-size:20px;';
+    clearList._armed = false;
+    clearList._activate = function () {
+      if (!clearList._armed) {
+        clearList._armed = true;
+        clearList.textContent = 'Confirmar borrado';
+        return;
+      }
+      if (historyViewTab === 'history') {
+        localProfile.history = [];
+      } else {
+        state.favs = {};
+        localProfile.favs = state.favs;
+      }
+      safeLocalWrite(LOCAL_PROFILE_KEY, localProfile);
+      showSettingsPanel(1, true);
+    };
     var grid = el('div', 'history-grid');
     if (!records.length) {
       grid.appendChild(el('div', 'history-grid-empty', 'No hay títulos para mostrar todavía.'));
