@@ -3366,24 +3366,24 @@ function portalServiceCall(method, params, done, customTimeout) {
     subtitle.style.cssText += ';font-size:25px;color:#bdbdbd;';
     page.appendChild(subtitle);
 
-    var logoUrls = {
-      netflix: 'https://cdn.simpleicons.org/netflix/E50914',
-      prime: 'https://cdn.simpleicons.org/primevideo/00A8E1',
-      disney: 'https://cdn.simpleicons.org/disneyplus/FFFFFF',
-      max: 'https://cdn.simpleicons.org/max/FFFFFF',
-      apple: 'https://cdn.simpleicons.org/appletv/FFFFFF',
-      hulu: 'https://cdn.simpleicons.org/hulu/1CE783',
-      paramount: 'https://cdn.simpleicons.org/paramountplus/FFFFFF'
+    /* Local wordmarks: do not depend on CDN/network access in webOS Simulator. */
+    var providerMarks = {
+      netflix: 'N',
+      prime: 'prime video',
+      disney: 'Disney+',
+      max: 'max',
+      apple: 'tv+',
+      hulu: 'hulu',
+      paramount: 'P+'
     };
     for (var i = 0; i < EXPLORE_PROVIDERS.length; i++) {
       (function (config, index) {
         var tile = el('div', 'focusable provider-hub-tile provider-launch-' + config.id);
         abs(tile, 430 + (index % 4) * 342, 220 + Math.floor(index / 4) * 238, 310, 204);
         tile.style.cssText += ';display:flex;flex-direction:column;justify-content:center;align-items:center;box-sizing:border-box;border-radius:16px;background:#101116;border:1px solid rgba(255,255,255,.16);color:#fff;';
-        var logo = el('img', 'provider-hub-logo');
-        logo.alt = config.label;
-        logo.src = logoUrls[config.id] || '';
-        logo.onerror = function () { this.style.display = 'none'; };
+        var logo = el('div', 'provider-hub-mark provider-mark-' + config.id,
+          providerMarks[config.id] || config.label);
+        logo.setAttribute('aria-label', config.label);
         tile.appendChild(logo);
         tile.appendChild(el('div', 'provider-hub-name', config.label));
         var count = providerCatalogItems(config.id).length;
