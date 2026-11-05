@@ -4506,6 +4506,7 @@ function portalServiceCall(method, params, done, customTimeout) {
       safeLocalWrite(LOCAL_PROFILE_KEY, localProfile);
       showSettingsPanel(1, true);
     };
+    p.appendChild(clearList);
     var grid = el('div', 'history-grid');
     if (!records.length) {
       grid.appendChild(el('div', 'history-grid-empty', 'No hay títulos para mostrar todavía.'));
