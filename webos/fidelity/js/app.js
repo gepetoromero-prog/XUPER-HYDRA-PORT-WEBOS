@@ -884,7 +884,8 @@ function portalServiceCall(method, params, done, customTimeout) {
     { id: 'playback', label: 'Configuración global' },
     { id: 'netdiag', label: 'Diagnóstico' },
     { id: 'feedback', label: 'Ayuda y Feedback' },
-    { id: 'about', label: 'Sobre nosotros' }
+    { id: 'about', label: 'Sobre nosotros' },
+    { id: 'maintenance', label: 'Almacenamiento y actualización' }
   ];
 
   var SETTINGS_MENU_ICONS = {
@@ -895,7 +896,8 @@ function portalServiceCall(method, params, done, customTimeout) {
     playback: '<svg viewBox="0 0 32 32"><rect x="4" y="6" width="24" height="20" rx="3"/><path d="M13 11l8 5-8 5z"/></svg>',
     netdiag: '<svg viewBox="0 0 32 32"><path d="M3 13a19 19 0 0 1 26 0"/><path d="M8 18a12 12 0 0 1 16 0"/><path d="M13 23a6 6 0 0 1 6 0"/><circle cx="16" cy="27.5" r="1.2"/></svg>',
     feedback: '<svg viewBox="0 0 32 32"><path d="M6 4h15l5 5v19H6z"/><path d="M20 4v6h6M10 16h12M10 21h8"/></svg>',
-    about: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="12"/><path d="M16 14v8M16 10h.1"/></svg>'
+    about: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="12"/><path d="M16 14v8M16 10h.1"/></svg>',
+    maintenance: '<svg viewBox="0 0 32 32"><path d="M5 8h22M8 8l2 19h12l2-19M12 8V4h8v4M13 13v9M19 13v9"/></svg>'
   };
 
   /* ---------------------------------------------------------------- state */
@@ -4165,6 +4167,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     settingsPanels.parent = buildParentPanel();
     settingsPanels.feedback = buildFeedbackPanel();
     settingsPanels.about = buildAboutPanel();
+    settingsPanels.maintenance = buildUpgradePanel();
 
     for (var k in settingsPanels) {
       if (settingsPanels.hasOwnProperty(k)) { settingsRight.appendChild(settingsPanels[k]); }
@@ -4193,6 +4196,10 @@ function portalServiceCall(method, params, done, customTimeout) {
       var refreshedHistory = buildHistoryPanel();
       settingsRight.replaceChild(refreshedHistory, settingsPanels.history);
       settingsPanels.history = refreshedHistory;
+    } else if (activeId === 'maintenance' && settingsPanels.maintenance && settingsRight) {
+      var refreshedMaintenance = buildUpgradePanel();
+      settingsRight.replaceChild(refreshedMaintenance, settingsPanels.maintenance);
+      settingsPanels.maintenance = refreshedMaintenance;
     } else if (activeId === 'parent' && settingsPanels.parent && settingsRight) {
       var refreshedParent = buildParentPanel();
       settingsRight.replaceChild(refreshedParent, settingsPanels.parent);
@@ -4534,44 +4541,117 @@ function portalServiceCall(method, params, done, customTimeout) {
     var qr = el('div', 'fb-qr');
     p.appendChild(qr);
     var help = el('div', 'fb-help focusable', 'Ayuda');
-    help._activate = function () { /* help center not reconstructed */ };
+    help._activate = function () {
+      if (window.open) { window.open('https://github.com/gepetoromero-prog/XUPER-HYDRA-PORT-WEBOS/issues', '_blank'); }
+    };
     p.appendChild(help);
     return p;
   }
 
-  function buildUpgradePanel() {
-    var p = el('div', 'settings-panel');
-    p.appendChild(el('div', 'sp-title plain', 'Settings'));
-    p.appendChild(abs(el('div', 'sp-hr soft'), 0, 165, 1498, 1));
-
-    var cache = el('div', 'sp-card');
-    abs(cache, 30, 198, 1360, 461);
-    cache.appendChild(el('h3', null, 'Limpiar cache'));
-    var rows = [
-      { y: 139, label: 'Historia' },
-      { y: 246, label: 'Cache de foto' },
-      { y: 353, label: 'Limpiar todos' }
-    ];
-    for (var i = 0; i < rows.length; i++) {
-      var row = el('div', 'sp-clear-row');
-      row.style.top = rows[i].y + 'px';
-      row.appendChild(el('span', 'lbl', rows[i].label));
-      var btn = el('div', 'btn focusable', 'Limpiar');
-      btn._activate = function () { /* cache clearing not implemented */ };
-      row.appendChild(btn);
-      cache.appendChild(row);
+  function compareVersion(a, b) {
+    var aa = String(a || '').replace(/^[^0-9]*/, '').split('.');
+    var bb = String(b || '').replace(/^[^0-9]*/, '').split('.');
+    for (var i = 0; i < Math.max(aa.length, bb.length); i++) {
+      var av = parseInt(aa[i] || '0', 10) || 0;
+      var bv = parseInt(bb[i] || '0', 10) || 0;
+      if (av !== bv) { return av > bv ? 1 : -1; }
     }
-    p.appendChild(cache);
-
-    var upd = el('div', 'sp-card');
-    abs(upd, 30, 689, 1360, 291);
-    upd.appendChild(el('h3', null, 'Actualización'));
-    var ver = el('div', 'sp-version', 'v4.34.4');
-    upd.appendChild(ver);
-    p.appendChild(upd);
-    return p;
+    return 0;
   }
 
+  function checkHydraUpdate(status) {
+    status.textContent = 'Consultando GitHub…';
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'https://api.github.com/repos/gepetoromero-prog/XUPER-HYDRA-PORT-WEBOS/releases/latest', true);
+    xhr.timeout = 9000;
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) { return; }
+      if (xhr.status === 200) {
+        try {
+          var release = JSON.parse(xhr.responseText || '{}');
+          var latest = String(release.tag_name || '').replace(/^v/i, '');
+          var current = '2.2.2';
+          if (!latest) { status.textContent = 'GitHub no publicó una versión identificable.'; }
+          else if (compareVersion(latest, current) > 0) {
+            status.textContent = 'Nueva versión disponible: ' + latest + '. Descarga el IPK desde Releases.';
+          } else {
+            status.textContent = 'Estás al día. Versión instalada: ' + current + '.';
+          }
+        } catch (e) { status.textContent = 'Respuesta de GitHub no válida.'; }
+      } else if (xhr.status === 404) {
+        status.textContent = 'Aún no hay una versión publicada en Releases.';
+      } else {
+        status.textContent = 'No se pudo comprobar (HTTP ' + xhr.status + ').';
+      }
+    };
+    xhr.ontimeout = function () { status.textContent = 'Tiempo agotado. Revisa la conexión.'; };
+    xhr.onerror = function () { status.textContent = 'No se pudo conectar con GitHub.'; };
+    try { xhr.send(null); } catch (eSend) { status.textContent = 'No se pudo iniciar la comprobación.'; }
+  }
+
+  function buildUpgradePanel() {
+    var p = el('div', 'settings-panel');
+    p.appendChild(el('div', 'sp-title plain', 'Almacenamiento y actualización'));
+    p.appendChild(abs(el('div', 'sp-hr soft'), 0, 165, 1498, 1));
+
+    var historyCard = el('div', 'sp-card');
+    abs(historyCard, 30, 198, 1360, 260);
+    historyCard.appendChild(el('h3', null, 'Datos guardados'));
+    var historyLabel = el('div', 'sp-version', 'Historial: ' + ((localProfile.history || []).length) + ' títulos');
+    historyCard.appendChild(historyLabel);
+    var clearHistory = el('div', 'btn focusable', 'Borrar historial');
+    clearHistory._armed = false;
+    clearHistory._activate = function () {
+      if (!clearHistory._armed) {
+        clearHistory._armed = true;
+        clearHistory.textContent = 'Confirmar borrado';
+        return;
+      }
+      localProfile.history = [];
+      safeLocalWrite(LOCAL_PROFILE_KEY, localProfile);
+      clearHistory._armed = false;
+      showSettingsPanel(8, false);
+      var active = settingsPanels.maintenance;
+      var label = active ? active.querySelector('.sp-version') : null;
+      if (label) { label.textContent = 'Historial: 0 títulos'; }
+    };
+    abs(clearHistory, 850, 105, 330, 68);
+    historyCard.appendChild(clearHistory);
+    var clearMeta = el('div', 'btn focusable', 'Limpiar metadatos');
+    clearMeta._activate = function () {
+      mediaInfoCache = {};
+      for (var i = 0; i < VOD.length; i++) { try { delete VOD[i]._searchIndexText; } catch (e) {} }
+      clearMeta.textContent = 'Metadatos limpiados';
+      setFocus(clearMeta);
+    };
+    abs(clearMeta, 850, 178, 330, 68);
+    historyCard.appendChild(clearMeta);
+    p.appendChild(historyCard);
+
+    var updateCard = el('div', 'sp-card');
+    abs(updateCard, 30, 489, 1360, 390);
+    updateCard.appendChild(el('h3', null, 'Actualización'));
+    updateCard.appendChild(el('div', 'sp-version', 'Port webOS: v2.2.2  ·  Motor/portal: v4.34.4'));
+    var status = el('div', 'sp-version', 'Pulsa para consultar si existe una versión nueva.');
+    status.style.top = '225px';
+    status.style.width = '1180px';
+    status.style.whiteSpace = 'normal';
+    status.style.lineHeight = '1.4';
+    updateCard.appendChild(status);
+    var check = el('div', 'btn focusable', 'Comprobar versión');
+    check._activate = function () { checkHydraUpdate(status); setFocus(check); };
+    abs(check, 65, 275, 330, 68);
+    updateCard.appendChild(check);
+    var releases = el('div', 'btn focusable', 'Abrir Releases');
+    releases._activate = function () {
+      if (window.open) { window.open('https://github.com/gepetoromero-prog/XUPER-HYDRA-PORT-WEBOS/releases', '_blank'); }
+      status.textContent = 'Las actualizaciones se instalan con el IPK publicado en Releases.';
+    };
+    abs(releases, 430, 275, 330, 68);
+    updateCard.appendChild(releases);
+    p.appendChild(updateCard);
+    return p;
+  }
   function buildAboutPanel() {
     var p = el('div', 'settings-panel');
     p.appendChild(el('div', 'sp-title plain', 'Sobre nosotros'));
