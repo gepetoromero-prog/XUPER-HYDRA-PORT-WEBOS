@@ -4708,7 +4708,12 @@ function portalServiceCall(method, params, done, customTimeout) {
   function checkHydraUpdate(status) {
     status.textContent = 'Consultando GitHub…';
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', 'https://api.github.com/repos/gepetoromero-prog/XUPER-HYDRA-PORT-WEBOS/releases/latest', true);
+    try {
+      xhr.open('GET', 'https://api.github.com/repos/gepetoromero-prog/XUPER-HYDRA-PORT-WEBOS/releases/latest', true);
+    } catch (eOpen) {
+      status.textContent = 'La versión de webOS no permite consultar GitHub desde la app.';
+      return;
+    }
     xhr.timeout = 9000;
     xhr.onreadystatechange = function () {
       if (xhr.readyState !== 4) { return; }
