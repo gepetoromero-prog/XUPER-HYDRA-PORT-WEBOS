@@ -3959,6 +3959,9 @@ function portalServiceCall(method, params, done, customTimeout) {
       clearSearchState();
       return;
     }
+    /* Invalidate pending VOD requests before switching search scopes. */
+    if (state.searchTimer) { clearTimeout(state.searchTimer); state.searchTimer = null; }
+    state.searchSeq = (state.searchSeq || 0) + 1;
     /* Live-TV search is local against the already loaded channel catalogue. */
     if (state.searchScope === 'live') {
       var liveMatches = [];
@@ -4128,7 +4131,7 @@ function portalServiceCall(method, params, done, customTimeout) {
             }
             state.searchScope = 'vod';
             state.searchFilter = def.id;
-            renderSearchResults(state.searchBaseMatches || []);
+            runSearch();
             var activeBar = searchResults.querySelector('.search-filter-bar');
             if (activeBar) {
               var activeChips = activeBar.querySelectorAll('.focusable');
