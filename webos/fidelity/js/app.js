@@ -7973,6 +7973,12 @@ function portalServiceCall(method, params, done, customTimeout) {
   }
 
   function openPlayer(mode, item, episode) {
+    if (mode === 'live' && CHANNELS[state.channel] && isAdultLiveChannel(CHANNELS[state.channel]) && !state.crOn) {
+      state.parentBlockedTitle = CHANNELS[state.channel].name || 'Canal para adultos';
+      openSettings();
+      showSettingsPanel(3, true);
+      return;
+    }
     if (mode === 'vod' && state.screen === 'detail') {
       expandToFullscreen(item, episode);
       return;
