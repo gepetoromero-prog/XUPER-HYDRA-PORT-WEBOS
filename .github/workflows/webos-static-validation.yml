@@ -64,6 +64,11 @@ jobs:
           grep -Fq "function buildHistoryPanel" webos/fidelity/js/app.js
           grep -Fq "function buildUpgradePanel" webos/fidelity/js/app.js
           grep -Fq "function checkHydraUpdate" webos/fidelity/js/app.js
+          grep -Fq "function openSupportIssue" webos/fidelity/js/app.js
+          grep -Fq "function compareVersion" webos/fidelity/js/app.js
+          grep -Fq "function setChannel" webos/fidelity/js/app.js
+          grep -Fq "Borrar historial" webos/fidelity/js/app.js
+          grep -Fq "Vaciar favoritos" webos/fidelity/js/app.js
           grep -Fq "state.settingsReturn" webos/fidelity/js/app.js
           grep -Fq "function buildProviderExperience" webos/fidelity/js/app.js
           grep -Fq "function refreshExploreProviders" webos/fidelity/js/app.js
