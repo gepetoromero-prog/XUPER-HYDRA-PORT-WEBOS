@@ -1847,7 +1847,10 @@ function portalServiceCall(method, params, done, customTimeout) {
       } else if (d.cls === 'search') {
         item._activate = function () { openSearch(); };
       } else {
-        item._activate = function () { /* destination not reconstructed */ };
+        item._activate = function () {
+          openSearch();
+          if (VOD && VOD.length) { renderSearchResults(VOD.slice()); }
+        };
       }
       notifyEl.appendChild(item);
     }
@@ -4664,7 +4667,11 @@ function portalServiceCall(method, params, done, customTimeout) {
     p.appendChild(qr);
     var help = el('div', 'fb-help focusable', 'Ayuda');
     help._activate = function () {
-      if (window.open) { window.open('https://github.com/gepetoromero-prog/XUPER-HYDRA-PORT-WEBOS/issues', '_blank'); }
+      if (window.open) {
+        var title = encodeURIComponent('Ayuda / Feedback XuperTV webOS');
+        var body = encodeURIComponent('Versión del port: 2.2.2\\nModelo webOS:\\nDescripción del problema o sugerencia:\\n');
+        window.open('https://github.com/gepetoromero-prog/XUPER-HYDRA-PORT-WEBOS/issues/new?title=' + title + '&body=' + body, '_blank');
+      }
     };
     p.appendChild(help);
     return p;
@@ -6793,7 +6800,11 @@ function portalServiceCall(method, params, done, customTimeout) {
     }
 
     if (psvBtnFeedback) {
-      psvBtnFeedback._activate = function () { schedulePlaySettingHide(); };
+      psvBtnFeedback._activate = function () {
+        schedulePlaySettingHide();
+        openSettings();
+        showSettingsPanel(6, true);
+      };
     }
 
     if (psvBtnConfig) {
@@ -6982,6 +6993,9 @@ function portalServiceCall(method, params, done, customTimeout) {
           } else if (label === 'Favorito') {
             var ch = CHANNELS[state.channel];
             ch.fav = !ch.fav;
+          } else if (label === 'Feedback') {
+            openSettings();
+            showSettingsPanel(6, true);
           }
         };
       })(d.label);
