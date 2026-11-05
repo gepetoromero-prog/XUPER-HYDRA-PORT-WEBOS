@@ -174,12 +174,13 @@
 #screen-player .vod-infobar-tips > * { margin-left:18px; }
 #screen-player .vod-infobar-tips > *:first-child { margin-left:0; }
 #screen-player .vod-tip {
-  display:inline-flex; align-items:center; gap:8px;
+  display:inline-flex; align-items:center;
   padding:9px 13px; border-radius:6px;
   background:rgba(255,255,255,.12); color:#fff;
   border:1px solid rgba(255,255,255,.12);
 }
 #screen-player .vod-tip img { display:none !important; }
+#screen-player .vod-tip span { margin-left:0; }
 #screen-player .vod-tip span {
   color:#fff; font-size:17px; font-weight:600;
 }
