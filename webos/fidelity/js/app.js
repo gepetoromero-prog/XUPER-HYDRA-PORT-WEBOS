@@ -4793,10 +4793,10 @@ function portalServiceCall(method, params, done, customTimeout) {
     check._activate = function () { checkHydraUpdate(status); setFocus(check); };
     abs(check, 65, 275, 330, 68);
     updateCard.appendChild(check);
-    var releases = el('div', 'btn focusable', 'Abrir Releases');
+    var releases = el('div', 'btn focusable', 'Abrir compilaciones');
     releases._activate = function () {
-      if (window.open) { window.open('https://github.com/gepetoromero-prog/XUPER-HYDRA-PORT-WEBOS/releases', '_blank'); }
-      status.textContent = 'Las actualizaciones se instalan con el IPK publicado en Releases.';
+      if (window.open) { window.open('https://github.com/gepetoromero-prog/XUPER-HYDRA-PORT-WEBOS/actions', '_blank'); }
+      status.textContent = 'Descarga el IPK desde el artefacto de la última compilación completada.';
     };
     abs(releases, 430, 275, 330, 68);
     updateCard.appendChild(releases);
