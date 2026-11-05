@@ -4109,7 +4109,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     }
     searchResultGrid.style.height = '874px';
     var first = firstIn(searchResultGrid);
-    if (first && state.screen === 'search' && !closest(state.focus, '.search-results')) { setFocus(first); }
+    if (first && state.screen === 'search' && (closest(state.focus, '.search-hot') || closest(state.focus, '.search-results'))) { setFocus(first); }
   }
 
   function renderSearchResultPage(requestedPage, focusIndex) {
@@ -4656,6 +4656,15 @@ function portalServiceCall(method, params, done, customTimeout) {
     p.appendChild(ok);
     return p;
   }
+  function openSupportIssue(source) {
+    if (!window.open) { return false; }
+    var title = encodeURIComponent('Ayuda / Feedback XuperTV webOS');
+    var body = encodeURIComponent('Origen: ' + (source || 'Aplicación') +
+      '\\nVersión del port: 2.2.2\\nModelo webOS:\\nDescripción del problema o sugerencia:\\n');
+    window.open('https://github.com/gepetoromero-prog/XUPER-HYDRA-PORT-WEBOS/issues/new?title=' + title + '&body=' + body, '_blank');
+    return true;
+  }
+
   function buildFeedbackPanel() {
     var p = el('div', 'settings-panel');
     p.appendChild(el('div', 'fb-title', 'Ayuda y Feedback'));
@@ -4666,13 +4675,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     var qr = el('div', 'fb-qr');
     p.appendChild(qr);
     var help = el('div', 'fb-help focusable', 'Ayuda');
-    help._activate = function () {
-      if (window.open) {
-        var title = encodeURIComponent('Ayuda / Feedback XuperTV webOS');
-        var body = encodeURIComponent('Versión del port: 2.2.2\\nModelo webOS:\\nDescripción del problema o sugerencia:\\n');
-        window.open('https://github.com/gepetoromero-prog/XUPER-HYDRA-PORT-WEBOS/issues/new?title=' + title + '&body=' + body, '_blank');
-      }
-    };
+    help._activate = function () { openSupportIssue('Ayuda'); };
     p.appendChild(help);
     return p;
   }
@@ -6802,8 +6805,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     if (psvBtnFeedback) {
       psvBtnFeedback._activate = function () {
         schedulePlaySettingHide();
-        openSettings();
-        showSettingsPanel(6, true);
+        openSupportIssue('Panel del reproductor');
       };
     }
 
@@ -6994,8 +6996,7 @@ function portalServiceCall(method, params, done, customTimeout) {
             var ch = CHANNELS[state.channel];
             ch.fav = !ch.fav;
           } else if (label === 'Feedback') {
-            openSettings();
-            showSettingsPanel(6, true);
+            openSupportIssue('Reproductor en vivo');
           }
         };
       })(d.label);
