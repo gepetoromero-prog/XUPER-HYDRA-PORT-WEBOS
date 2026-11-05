@@ -4660,7 +4660,7 @@ function portalServiceCall(method, params, done, customTimeout) {
     if (!window.open) { return false; }
     var title = encodeURIComponent('Ayuda / Feedback XuperTV webOS');
     var body = encodeURIComponent('Origen: ' + (source || 'Aplicación') +
-      '\\nVersión del port: 2.2.2\\nModelo webOS:\\nDescripción del problema o sugerencia:\\n');
+      '\nVersión del port: 2.2.2\nModelo webOS:\nDescripción del problema o sugerencia:\n');
     window.open('https://github.com/gepetoromero-prog/XUPER-HYDRA-PORT-WEBOS/issues/new?title=' + title + '&body=' + body, '_blank');
     return true;
   }
