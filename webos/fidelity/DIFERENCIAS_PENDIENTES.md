@@ -29,8 +29,8 @@ Estados:
 | A10 | Detalle | Marquesina del texto de los botones | `MarqueTextView`/`marquee` no se anima en el port | Implementar animación CSS o confirmar que no se ve en la referencia |
 | A11 | Detalle | Lista de episodios/temporadas | **Resuelto (desviación consciente):** el detalle conserva temporada + grupos de episodios; el reproductor abre un navegador tipo Netflix a pantalla completa en lugar de las píldoras apretadas del panel original | — |
 | A12 | Detalle | Aviso de suscripción (`mLayoutNotice`) | Está `gone` en el XML | Solo si el backend lo activa |
-| A13 | Búsqueda | Barra de navegación y filtros | Fuera del alcance de esta pasada | `layout_vod_search_result.xml` completo |
-| A14 | Búsqueda | Búsqueda de canales en vivo | Fuera de alcance | `fragment_search_live.xml` |
+| A13 | Búsqueda | Barra y filtros VOD | **Implementado:** filtros Todo, Películas, Series, Gratis, Infantil y UHD; paginación de resultados y retorno al detalle | Verificar distribución visual en simulador |
+| A14 | Búsqueda | Búsqueda de canales en vivo | **Implementado:** búsqueda local por nombre, categoría, EPG y código sobre los canales ya cargados | Probar con catálogo completo y Magic Remote |
 | A15 | Ajustes | Paneles *Account* y *Purchase* | Dependen de sesión y recursos servidos | `fragment_account.xml`, `fragment_purchase.xml` + backend autorizado |
 | A16 | Ajustes | QR de feedback | Lo sirve el backend; no hay bitmap | Endpoint autorizado |
 | A17 | Ajustes | Indicador de opción a `left:16px` | El XML lo centra; se movió para no tapar el texto de 255 px | Confirmar con A1 y, si procede, volver al centrado |
@@ -39,7 +39,7 @@ Estados:
 | A20 | Reproductor | Superficie de vídeo en capturas headless | No hay fotograma decodificado en headless | Probar en el televisor |
 | A21 | Inicio | Aviso de texto `mTextNotice` | Está `gone` y lo activa el backend | Fuente de avisos autorizada |
 | A22 | Reproductor | Tiempo de auto-ocultado de la barra | El recurso no expone la constante; el port usa 5 s | Medir en la app real y ajustar |
-| A23 | Reproductor | Diálogo de FEEDBACK | El botón existe y es enfocable, pero no abre nada. La APK real usa un diálogo de 920×784 con motivos y envío | Reconstruir `dialog_feedback*.xml` y su envío |
+| A23 | Reproductor | Diálogo de FEEDBACK | **Parcial:** los botones Feedback del reproductor abren Ayuda y Feedback y el formulario externo del repositorio; el diálogo nativo de 920×784 aún no está reconstruido | Reconstruir el diálogo original y validar envío |
 | A24 | Inicio | Franja de logos de marca en EXPLORAR | Los logos no están en la APK; se muestran tiles grises | Recursos del backend o captura de referencia |
 
 ---
@@ -50,16 +50,16 @@ Estados:
 | --- | --- | --- | --- | --- |
 | B1 | Control parental | Captura numérica y validación de los 4 dígitos | **Implementado en port local:** teclado D-pad 0–9, validación de 4 dígitos y PIN persistido en este TV | Probar con Magic Remote en simulador/TV; el PIN local no sustituye un control seguro del sistema |
 | B2 | Control parental | Cambio de contraseña | **Implementado:** requiere desbloquear con el PIN actual y permite guardar uno nuevo | Validar flujo completo en simulador |
-| B3 | Contenido adulto | Persistencia y bloqueo | **Parcial:** el interruptor se guarda y bloquea la apertura de títulos identificados como Adult/18+/XXX/erótico; depende de que el catálogo etiquete correctamente el contenido | Ampliar detección a todos los feeds y bloquear también accesos directos/raíces adultas |
-| B4 | Feedback | Centro de ayuda | Enlace sin destino | `fragment_aboutus.xml` / web autorizada |
-| B5 | Actualización | Comprobación de versión y descarga | Solo UI | Endpoint de upgrade |
-| B6 | Actualización | Borrado de caché | Botón sin efecto | API de almacenamiento de webOS |
+| B3 | Contenido adulto | Persistencia y bloqueo | **Parcial implementado:** PIN por sesión, preferencia persistente y bloqueo de VOD/canales en vivo cuyas etiquetas indiquen Adult/18+/XXX/erótico | Verificar metadatos de todos los feeds y categorías adultas sin etiquetas |
+| B4 | Feedback | Centro de ayuda | **Implementado como enlace externo:** abre el formulario de incidencias del repositorio con plantilla de ayuda | Depende de conexión y navegador externo de webOS |
+| B5 | Actualización | Comprobación de versión | **Parcial:** consulta GitHub Releases y compara versión instalada; la descarga/instalación del IPK sigue siendo manual | Publicar releases firmadas y probar apertura externa |
+| B6 | Almacenamiento | Limpieza de datos | **Parcial:** permite borrar historial/favoritos y metadatos temporales en memoria; no borra la caché interna de imágenes del navegador | Validar almacenamiento webOS y caché real en simulador |
 | B7 | Búsqueda | Teclado numérico completo | **Implementado:** alterna teclado alfabético/numérico, incluye 0–9 y retroceso | Probar foco/entrada con Magic Remote |
 | B8 | Búsqueda | Filtros por categoría | **Implementado en búsqueda VOD:** Todo, Películas, Series, Gratis, Infantil y UHD filtran los resultados locales/remotos | Probar navegación y paginación en simulador |
 | B9 | Detalle | Chips de género / director / actores | **Implementado en el port:** abren búsqueda por el valor seleccionado y BACK regresa al detalle con el foco restaurado | Probar foco con Magic Remote; pantalla de categoría original sigue siendo distinta |
 | B10 | Inicio | PARTIDOS / Match* | Excluido | `activity_match*.xml` |
 | B11 | Inicio | `LiveFreeActivity` como pantalla propia | Solo se reconstruyó la rejilla gratis | Identificar el fragmento hijo de `activity_live.xml` |
-| B12 | Navegación | Historial real (back multinivel) | **Parcial:** el historial de reproducción se guarda y permite reabrir/resumir; `detailReturn`, `playerReturn`, `searchReturn` y `settingsReturn` conservan retornos anidados y foco | Unificar en una pila de rutas genérica y probar cadenas largas de navegación con Magic Remote |
+| B12 | Navegación | Historial real (back multinivel) | **Parcial:** el historial de reproducción permite reabrir y reanudar; `detailReturn`, `playerReturn`, `searchReturn` y `settingsReturn` conservan retornos anidados y foco | Unificar en una pila genérica y probar secuencias largas con Magic Remote |
 
 ---
 
@@ -128,10 +128,8 @@ Estados:
 
 ## E. Riesgos si se publica ahora
 
-1. El IPK antiguo de `webos/fidelity/` muestra el prototipo; el artefacto
-   válido es `dist/com.webosflux.xuptertv.fidelity_1.5.9_all.ipk`.
-2. La build 1.5.9 contiene el port, el servicio y FFmpeg, y está verificada en
-   la TV, pero **no es una release**: le faltan los flujos B1–B8 y A18.
+1. La rama `armoniztech/hydra-ui` está en versión de port 2.2.2; el workflow actual genera el IPK con app, servicio y FFmpeg.
+2. La compilación y validación estática pasan en GitHub Actions, pero **no equivalen a una prueba visual/funcional en el simulador LG**. A1/A2, A18, A23 y los flujos B1–B12 aún requieren validación real.
 3. `assets/original/` viaja en el IPK; sin él no se reproduce la estética real.
 4. Afirmar "100 % fidelidad" sin A1 (referencia visual completa) sería falso.
 5. El TV en vivo ya usa canales reales, pero la reproducción directa de
