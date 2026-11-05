@@ -4335,3 +4335,46 @@ div, section, span { outline: none; }
 .platform-launcher .provider-hub-count {
   margin-top:9px; font-size:16px; background:rgba(0,0,0,.26);
 }
+
+
+/* Provider mode is a true full-screen app shell: hide Xuper's permanent
+   navigation while a streaming service is open so its own navigation never
+   collides with the Xuper rail. */
+#screen-home.is-provider-mode .home-tabs,
+#screen-home.is-provider-mode .home-sidebar-bg,
+#screen-home.is-provider-mode .home-port-credit,
+#screen-home.is-provider-mode .home-notify { display:none !important; }
+#screen-home.is-provider-mode .home-pages,
+#screen-home.is-provider-mode .home-page.is-current {
+  left:0 !important; width:100% !important; max-width:none !important;
+}
+#screen-home.is-provider-mode .provider-experience {
+  left:0 !important; top:0 !important; width:100% !important;
+  min-height:100vh !important; padding-left:0 !important;
+  box-sizing:border-box; z-index:30;
+}
+#screen-home.is-provider-mode .platform-launcher {
+  left:0 !important; width:100% !important;
+}
+.platform-launcher .provider-hub-tile {
+  background:#101116 !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+}
+.platform-launcher .provider-hub-logo {
+  display:block; width:190px; height:100px; object-fit:contain;
+  margin:0 auto 12px; filter:drop-shadow(0 5px 14px rgba(0,0,0,.35));
+}
+.platform-launcher .provider-hub-name {
+  color:#fff; font-size:23px; letter-spacing:.2px;
+}
+.platform-launcher .provider-hub-count {
+  color:#aeb4bf; background:transparent; font-size:15px;
+}
+.provider-experience .provider-back { left:48px !important; }
+.provider-experience.provider-nav-left .provider-nav-item { left:48px !important; }
+.provider-experience.provider-nav-left .provider-hero,
+.provider-experience.provider-nav-left .provider-rail-title,
+.provider-experience.provider-nav-left .provider-rail-track,
+.provider-experience.provider-nav-left .provider-play,
+.provider-experience.provider-nav-left .provider-more,
+.provider-experience.provider-nav-left .provider-hero-meta { left:230px !important; }
